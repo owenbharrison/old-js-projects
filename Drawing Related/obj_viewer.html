@@ -1,0 +1,88 @@
+<div id="canvasContainer"></div>
+<input type="file" id="fileInput"style="width: 180px;">
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script src="https://utils.cdnjs.repl.co/fpscount.js"></script>
+<script>
+var turn1 = 2.14;
+var turn2 = -1.35;
+var zoom = 1;
+
+var points = [];
+var faces = [];
+var ready = false;
+
+var auto_optimization = true;
+var frameSkip = 1;
+
+function setup(){
+  var canvas = createCanvas(600, 600);
+  canvas.parent("canvasContainer");
+  document.getElementById('fileInput').addEventListener('change', function() {
+    const reader = new FileReader();
+    reader.onload=e=>{
+      gotData(reader.result);
+    };
+    reader.readAsText(this.files[0]);
+  });
+  frameRate(60);
+}
+
+function draw(){
+  background(170);
+  if(ready){
+    for(var i=0;i<faces.length;i+=frameSkip){
+      var face = faces[i];
+      push();
+      noFill();
+      stroke(80);
+      strokeWeight(0.5);
+      beginShape();
+      face.forEach(pointindex=>{
+        pointindex+=pointindex>0?-1:pointindex<0?points.length:0;
+        var v = points[pointindex];
+        var n = point3Dtopoint2D(v.x,v.y,v.z,turn1,turn2);
+        vertex(n.x*zoom+width/2,n.y*zoom+height/2);
+      });
+      endShape(CLOSE);
+      pop();
+    }
+  }
+  turn1 -= mouseIsPressed?(pmouseX-mouseX)/200:0;
+  turn2 -= mouseIsPressed?(pmouseY-mouseY)/200:0;
+}
+
+
+function gotData(data){
+  var vrx = /\bv\s+(-?[.0-9]+)\s+(-?[.0-9]+)\s+(-?[.0-9]+)\b/g;
+  var vres = vrx.exec(data);
+  points = [];
+  while(vres!=null){
+    points.push({x:parseFloat(vres[1],10),y:parseFloat(vres[2],10),z:parseFloat(vres[3],10)});
+    vres = vrx.exec(data);
+  }
+  var frx = /\bf\s+.+\b/g;
+  var res = data.match(frx);
+  faces = [];
+  res.forEach(facematch=>{
+    facematch = facematch.split(/\s+/);
+    facematch.shift();
+    var face = [];
+    for(var i in facematch){
+      face.push(parseInt(facematch[i].match(/^(-?\d+).*$/)[1]));
+    }
+    faces.push(face);
+  });
+  centeraround3D(points, {x:0,y:0,z:0});
+  ready = true;
+}
+
+
+function mouseWheel(e){
+  zoom += e.delta/500;
+  zoom = Math.abs(zoom);
+}
+
+function point3Dtopoint2D(xi, yi, zi, t1, t2){
+  return {x: Math.sin(t1)*xi-Math.cos(t1)*zi, y:(Math.cos(t1)*xi+Math.sin(t1)*zi)*Math.cos(t2)+Math.sin(t2)*yi}
+}
+</script>

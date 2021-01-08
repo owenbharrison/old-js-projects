@@ -1,0 +1,33 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+let img;
+
+function setup(){
+  createCanvas(800, 400);
+  img = loadImage("https://images-na.ssl-images-amazon.com/images/I/41Vpu7t0bLL._SX348_BO1,204,203,200_.jpg");
+  pixelDensity(1);
+}
+
+function draw(){
+  image(img, 0, 0, width/2, height);
+  var fc = frameCount;
+  loadPixels();
+  var p = pixels;
+  updatePixels();
+  push();
+  noStroke();
+  fill(255, 3);
+  rect(400, 0, width/2, height);
+  pop();
+  for(l=-height/2;l<height/2;l+=12){
+    var lp = awr({x: width/4*3, y: 200}, fc/15, l);
+    roundoff(lp);
+    var index = ((lp.x-width/2)+(lp.y)*width)*4;
+    push();
+    noStroke();
+    fill(p[index], p[index+1], p[index+2]);
+    circle(lp.x, lp.y, 12);
+    pop();
+  }
+}
+</script>

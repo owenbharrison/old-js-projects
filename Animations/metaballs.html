@@ -1,0 +1,62 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script src="https://utils.cdnjs.repl.co/fpscount.js"></script>
+<script>
+var metaballs = [];
+var numgroups = 10;
+var inc = 2;
+
+function setup(){
+  createCanvas(400, 400);
+  for(let i=0;i<5;i++){
+    metaballs.push(new Metaball(random(width), random(height)));
+  }
+}
+
+function draw(){
+  background(0);
+  metaballs.forEach(m=>{
+    m.update();
+  }); 
+  for(let x=0;x<width;x+=inc){
+    for(let y=0;y<height;y+=inc){
+      loadPixels();
+      var sum = 0;
+      metaballs.forEach(m=>{
+        var dist = distance(m.pos.x-x, m.pos.y-y);
+        sum += 100*m.r/dist;
+      });
+      var col = round(sum/(255/numgroups))*(255/numgroups);
+      for(let x_=0;x_<inc;x_++){
+        for(let y_=0;y_<inc;y_++){
+          var z = ((x+x_)+(y+y_)*width)*4;
+          pixels[z+0] = col;
+          pixels[z+1] = col;
+          pixels[z+2] = col;
+          pixels[z+3] = 255;
+        }
+      }
+    }
+  }
+  updatePixels();
+  if(keys[32]){
+    noLoop();
+  }
+}
+
+function Metaball(x, y){
+  this.pos = {x: x, y: y};
+  this.mov = {x: random(-4, 4), y: random(-4, 4)};
+  this.r = random(25,45);
+  
+  this.update = function(){
+    this.pos.x+=this.mov.x;
+    this.pos.y+=this.mov.y;
+    if(this.pos.x<0||this.pos.x>width){
+      this.mov.x*=-1;
+    }
+    if(this.pos.y<0||this.pos.y>height){
+      this.mov.y*=-1;
+    }
+  }
+}
+</script>

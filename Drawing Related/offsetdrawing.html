@@ -1,0 +1,26 @@
+<p id="p">offset disabled</p>
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var offset = false;
+
+function setup(){
+  createCanvas(600, 600);
+  background(50);
+}
+
+function draw(){
+  if(mouseIsPressed){
+    stroke(255);
+    strokeWeight(3);
+    line(pmouseX+offset*50, pmouseY+offset*50, mouseX+offset*50, mouseY+offset*50);
+  }
+  keys[32]?background(50):0;
+}
+
+function keyPressed(){
+  if(keyCode==SHIFT){
+    offset = !offset;
+    document.getElementById("p").innerHTML = "offset "+(offset?"enabled":"disabled");
+  }
+}
+</script>

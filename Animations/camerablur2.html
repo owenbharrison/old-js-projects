@@ -1,0 +1,33 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var cam;
+var sz = 20;
+var flip = true;
+
+function setup(){
+  createCanvas(720, 540);
+  cam = createCapture(VIDEO);
+  cam.hide();
+  pixelDensity(1);
+}
+
+function draw(){
+  image(cam, 0, 0, width, height);
+  loadPixels();
+  var p = pixels;
+  updatePixels();
+  background(0);
+  for(y=sz;y<height;y+=sz){
+    for(x=sz;x<width;x+=sz){
+      var z = (x+y*width)*4;
+      var b = (p[z]+p[z+1]+p[z+2])/3;
+      push();
+      noFill();
+      stroke(255);
+      strokeWeight(2);
+      circle(flip?width-x:x, y, map(b, 0, 255, 0, sz*2));
+      pop();
+    }
+  }
+}
+</script>

@@ -1,0 +1,45 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+var rot1 = 0;
+var rot2 = Math.PI/2;
+var speed = Math.PI/72;
+var offset = Math.PI/2;
+var h = 250;
+var hinfo;
+var w = 100;
+
+function setup(){
+  createCanvas(400, 400);
+  background(170);
+  hinfo = (height-h)/2;
+}
+
+function draw(){
+  rot1 += speed;
+  rot2 = -rot1+offset;
+  var pos1 = {
+    x: w*Math.cos(rot1)+200,
+    y: w/5*Math.sin(rot1)+hinfo
+  }
+  var pos2 = {
+    x: w*Math.cos(rot2)+200,
+    y: w/5*Math.sin(rot2)+hinfo+h
+  }
+  push();
+  strokeWeight(1);
+  line(pos1.x, pos1.y, pos2.x, pos2.y);
+  pop();
+  
+  push();
+  fill(255, 0, 0);
+  circle(pos1.x, pos1.y, 1);
+  pop();
+  push();
+  fill(0, 255, 255);
+  circle(pos2.x, pos2.y, 1);
+  pop();
+  if(rot1>=Math.PI*2-speed){
+    noLoop();
+  }
+}
+</script>

@@ -1,0 +1,53 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
+<script>
+const a = 10;
+const b = 28;
+const c = 8/3;
+
+var spin = 50;
+var totalX = 462;
+var totalY = 150;
+
+var x = 0.01;
+var y = 0;
+var z = 0;
+var prev = {x: x, y: y, z: z}
+
+var points = [];
+
+function setup(){
+  createCanvas(400, 400, WEBGL);
+}
+
+function draw(){
+  background(51);
+  var dt = 0.01;
+  var dx = dt*(a*(y-x));
+  var dy = dt*(x*(b-z)-y);
+  var dz = dt*(x*y - c*z);
+  x+=dx;
+  y+=dy;
+  z+=dz;
+  points.push({x: x, y: y, z: z});
+  for(i=0;i<points.length-1;i++){
+    var point = points[i];
+    push();
+    stroke(255);
+    strokeWeight(2);
+    line(prev.x, prev.y, prev.z, point.x, point.y, point.z);
+    pop();
+    prev = point;
+  }
+  
+  camera(spin*Math.cos(-totalX/100)*5, -spin*Math.cos(totalY/100)*10, (5*spin)*Math.sin(-totalX/100), 0, 0, 0, 0, 1, 0);
+  
+  totalX += mouseIsPressed ? pmouseX-mouseX : 0;
+  totalY += mouseIsPressed ? pmouseY-mouseY : 0;
+}
+
+function mouseWheel(event){
+  spin += event.delta/50;
+}
+
+
+</script>

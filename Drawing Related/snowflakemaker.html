@@ -1,0 +1,35 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var numfold = 8;
+var val = 0;
+let slider;
+
+function setup(){
+  createCanvas(400, 400);
+  background(0);
+  colorMode(HSB, 100);
+  slider = createSlider(2, 10, 8, 1)
+}
+
+function draw(){
+  if(mouseIsPressed){
+	var ma = magicangle({x: 200, y: 200}, {x: mouseX, y: mouseY});
+	var dist = distance(mouseX-200, mouseY-200);
+	for(a=ma;a<Math.PI*2+ma;a+=Math.PI*2/numfold){
+	  var lp = awr({x: 200, y:200}, a, dist);
+	  push();
+	  noStroke();
+	  var d2s = map(dist, 0, width/2, 0, 100);
+	  fill(val, d2s, 100);
+	  circle(lp.x, lp.y, 10);
+	  pop();
+	  val+=0.3;
+	  val = val%100;
+	}
+  }
+  if(keys[32]){
+    background(0);
+  }
+  numfold = slider.value();
+}
+</script>

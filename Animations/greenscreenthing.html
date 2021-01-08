@@ -1,0 +1,64 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+let cam;
+var mbp = false;
+var pix_orig;
+var pix_after;
+
+function setup(){
+  createCanvas(480, 360);
+  cam = createCapture(VIDEO);
+  cam.hide();
+}
+
+function draw(){
+  if(!mbp){
+    background(0);
+    image(cam, 0, 0, width, height)
+  }
+}
+
+function mousePressed(e){
+  if(e.button==0){
+    background(0);
+    image(cam, 0, 0, width, height);
+    loadPixels();
+    orig = pixels;
+    updatePixels();
+  }
+  if(e.button==1){
+    mbp = true;
+    background(0);
+    image(cam, 0, 0, width, height);
+    loadPixels();
+    after = pixels;
+    updatePixels();
+    var done = [];
+    for(x=0;x<width;x++){
+      for(y=0;y<height;y++){
+        var z = (x+y*width)*4;
+        var o = {r:orig[z],g:orig[z+1],b:orig[z+2]};
+        var a = {r:after[z],g:after[z+1],b:after[z+2]};
+        var d = distance(o.r-a.r, o.g-a.g, o.b-a.b);
+        if(d<10){
+          done[z+0] = 0;
+          done[z+1] = 0;
+          done[z+2] = 0;
+          done[z+3] = 255;
+        }else{
+          
+          done[z+0] = orig[z+0];
+          done[z+1] = orig[z+1];
+          done[z+2] = orig[z+2];
+          done[z+3] = 255;
+        }
+      }
+    }
+    loadPixels();
+    for(i in pixels){
+      pixels[i] = done[i];
+    }
+    updatePixels();
+  }
+}
+</script>

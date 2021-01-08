@@ -1,0 +1,284 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+console.clear();
+
+var lifespan = 270;
+var currentage = 0;
+var maxforce = 2;
+var maxspin = 0.3;
+var generationcount = 0;
+var mutationrate = 0.3;
+
+
+var population;
+var target;
+var barriers = [];
+
+var resetButton;
+var currentageDisplay;
+var generationcountDisplay;
+var timetotargetDisplay;
+
+
+function setup(){
+  createCanvas(400, 300);
+  population = new Population(350, 250, 100);
+  resetButton = createButton("RESET");
+  resetButton.position(width-50, height+10);
+  resetButton.mousePressed(()=>{
+    population = new Population(350, 250, 100);
+    generation = 0;
+    currentage = 0;
+  });
+  currentageDisplay = createP("Current Age");
+  generationcountDisplay = createP("Generation 0");
+  timetotargetDisplay = createP("Avg moves to target: null");
+  target = new Target(40, 227, 20);
+  barriers.push(new Barrier(128, 249, 35));
+  barriers.push(new Barrier(273, 172, 35));
+  barriers.push(new Barrier(173, 272, 35));
+  barriers.push(new Barrier(273, 272, 35));
+}
+
+function draw(){
+  background(170);
+  currentageDisplay.html("Current Age "+currentage);
+  population.run();
+  currentage++;
+  
+  if(currentage==lifespan){
+    population.evaluate();
+    
+    
+    var avg = 0;
+    var avgcount = 0;
+    population.rockets.forEach(r=>{
+      if(r.completed){
+        avg+=r.timetotarget;
+        avgcount++;
+      }
+    });
+    avg /= avgcount;
+    if(isNaN(avg)){
+      avg = null;
+    }
+    timetotargetDisplay.html("Avg moves to target: "+avg);
+    
+    population.selection();
+    currentage = 0;
+    
+    generationcount++;
+    generationcountDisplay.html("Generation "+generationcount);
+  }
+  
+  barriers.forEach(b=>b.show());
+  target.show();
+}
+
+function Barrier(x, y, r){
+  this.pos = createVector(x, y);
+  this.r = r;
+  this.mda = Infinity;
+  this.mdl = Infinity;
+  
+  this.show = function(){
+    push();
+    stroke(225, 0, 0);
+    strokeWeight(3);
+    fill(220, 50, 0, 150);
+    circle(this.pos.x, this.pos.y, this.r*2);
+    pop();
+    this.mda = dist(this.pos.x, this.pos.y, mouseX, mouseY);
+    if(!mouseIsPressed){
+      this.mdl = this.mda;
+    }
+    if(mouseIsPressed&&this.mdl<r){
+      this.pos.x += mouseX-pmouseX;
+      this.pos.y += mouseY-pmouseY;
+    }
+  }
+}
+
+function Target(x, y, r){
+  this.pos = createVector(x, y);
+  this.r = r;
+  this.mda = Infinity;
+  this.mdl = Infinity;
+  
+  this.show = function(){
+    push();
+    stroke(0, 255, 0);
+    strokeWeight(3);
+    fill(30, 255, 80, 170);
+    circle(this.pos.x, this.pos.y, this.r*2);
+    pop();
+    this.mda = dist(this.pos.x, this.pos.y, mouseX, mouseY);
+    if(!mouseIsPressed){
+      this.mdl = this.mda;
+    }
+    if(mouseIsPressed&&this.mdl<r){
+      this.pos.x += mouseX-pmouseX;
+      this.pos.y += mouseY-pmouseY;
+    }
+  }
+}
+
+function Population(x, y, popsize){
+  this.pos = createVector(x, y);
+  this.rockets = [];
+  this.popsize = popsize;
+  this.matingpool = [];
+  this.avgtimetotarget = 0;
+
+  for(let i=0;i<this.popsize;i++){
+    this.rockets[i] = new Rocket(this.pos.x, this.pos.y);
+  }
+
+  this.evaluate = function(){
+    var maxfit = 0;
+    for(let i=0;i<this.rockets.length;i++){
+      this.rockets[i].calcFitness();
+      if(this.rockets[i].fitness > maxfit){
+        maxfit = this.rockets[i].fitness;
+      }
+    }
+    
+    this.rockets.forEach(r=>{
+      r.fitness /= maxfit;
+    });
+
+    this.matingpool = [];
+    this.rockets.forEach(r=>{
+      var n = r.fitness*100;
+      for(let j=0;j<n;j++){
+        this.matingpool.push(r);
+      }
+    });
+  }
+  
+  this.selection = function(){
+    var newRockets = [];
+    for(let i=0;i<this.rockets.length;i++){
+      var parentA = random(this.matingpool).dna;
+      var parentB = random(this.matingpool).dna;
+      var childDNA = parentA.crossover(parentB);
+      childDNA.mutation();
+      newRockets[i] = new Rocket(this.pos.x, this.pos.y, childDNA);
+    }
+    this.rockets = newRockets;
+  }
+
+  this.run = function(){
+    this.rockets.forEach(r=>{
+      r.update();
+      r.show();
+    });
+  }
+}
+
+function DNA(genes){
+  if(genes){
+    this.genes = genes;
+  }
+  else{
+    this.genes = [];
+    for(let i=0;i<lifespan;i++){
+      this.genes[i] = random(-maxspin, maxspin);
+    }
+  }
+  this.crossover = function(partner){
+    var newgenes = [];
+    var mid = floor(random(this.genes.length));
+    for(i=0;i<this.genes.length;i++){
+      if(i>mid){
+        newgenes[i] = this.genes[i];
+      }
+      else{
+        newgenes[i] = partner.genes[i];
+      }
+    }
+    return new DNA(newgenes);
+  }
+  
+  this.mutation = function(){
+    this.genes.forEach(g=>{
+      if(random(1)<mutationrate){
+        g = random(-maxspin, maxspin);
+      }
+    });
+  }
+}
+
+
+
+function Rocket(x, y, dna){
+  this.pos = createVector(x, y);
+  this.rot = Math.PI;
+  this.completed = false;
+  this.timetotarget = 0;
+  this.crashed = false;
+  if(dna){
+    this.dna = dna;
+  }
+  else{
+    this.dna = new DNA();
+  }
+  this.fitness = 0;
+  
+  this.checkBarrier = function(b){
+    if(dist(this.pos.x, this.pos.y, b.pos.x, b.pos.y)<b.r){
+      this.crashed = true;
+    }
+  }
+  
+  this.checkTarget = function(t){
+    if(dist(this.pos.x, this.pos.y, t.pos.x, t.pos.y)<t.r){
+      this.completed = true;
+      this.pos = t.pos;
+    }
+  }
+  
+  this.calcFitness = function(){
+    var d = dist(this.pos.x, this.pos.y, target.pos.x, target.pos.y);
+    this.fitness = map(d, 0, width, width, 0);
+    if(this.completed){
+      this.fitness *= 20;
+    }
+    if(this.crashed){
+      this.fitness /= 20;
+    }
+    this.fitness *= map(this.timetotarget, 0, lifespan, 5, 0.2);
+    this.fitness = this.fitness**4;
+  }
+  
+  this.update = function(){    
+    barriers.forEach(b=>this.checkBarrier(b));
+    this.checkTarget(target);
+    
+    if(!this.completed){
+      this.timetotarget = currentage;
+    }
+    
+    if(this.pos.x<0||this.pos.x>width||this.pos.y>height||this.pos.y<0){
+      this.crashed = true;
+    }
+    
+    
+    if(!this.completed&&!this.crashed){
+      this.rot+=this.dna.genes[currentage];
+      this.pos.x+=cos(this.rot)*maxforce;
+      this.pos.y+=sin(this.rot)*maxforce;
+    }
+  }
+  
+  this.show = function(){
+    push();
+    noStroke();
+    fill(255, 180);
+    translate(this.pos.x, this.pos.y);
+    rotate(this.rot);
+    triangle(-10, -3, -10, 3, 15, 0);
+    pop();
+  }
+}
+</script>

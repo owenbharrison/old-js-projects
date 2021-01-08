@@ -1,0 +1,143 @@
+<!--2 player platformer
+with random terrain generation
+-->
+<svg id="svg" width="600" height="600" style="border: solid; background-image: linear-gradient(#505090, #5090fc);">
+  <path id="path" style=" stroke-width: 8; stroke: green; fill: #964b00;"/>
+  <circle id="player1" cx="280" r="8" style="fill: red;"/>
+  <circle id="player2" cx="320" r="8" style="fill: blue;"/>
+</svg>
+<p><b>Red: WASD Blue: Arrow Keys</b></p>
+<div id="info" style="font-size: 30px;"></div>
+<script> 
+//vars
+//terrain
+var dot = [-4000, Math.floor(Math.random()*200)+200];
+var pathArr = [dot+" "];
+
+//literal
+var time = 0;
+var svg = document.getElementById("svg");
+svg.focus();
+var path = document.getElementById("path");
+var info = document.getElementById("info");
+var player1 = document.getElementById("player1");
+var player2 = document.getElementById("player2");
+//physical p1 and p2
+var x1 = -20;
+var x2 = 20;
+var y1;
+var y2;
+var hops1 = 4;
+var hops2 = 4;
+var keys = [];
+var glide1 = 0;
+var glide2 = 0;
+var speed1 = 0.4;
+var speed2 = 0.4;
+var gravity1 = 0;
+var gravity2 = 0;
+var standSpots = [];
+info.innerHTML = "Generating world...";
+
+//keypressHandlers
+document.addEventListener("keydown", function(event){
+  keys[event.keyCode] = true;
+});
+document.addEventListener("keyup", function(event){
+  keys[event.keyCode] = false;
+});
+
+timer = setInterval(function(){
+  time++;
+}, 100);
+
+//terrain generation
+terrain = setInterval(function(){
+  dot[0] += 2;
+  var range = 4;
+  dot[1] += Math.random()*range-range/2;
+  pathArr.push(dot+" ");
+  path.setAttribute("d", "M"+pathArr);
+  standSpots.push([dot[0]-range/2, dot[0]+range/2, dot[1]]);
+  svg.setAttribute("viewBox", [dot[0]-200, dot[1]-200, 400, 400]);
+  if(dot[0]>=4000){
+    clearInterval(terrain);
+	clearInterval(timer);
+	console.log("MapGen Time: "+(time/10).toFixed(2)+"s");
+	pathArr.push([4010, standSpots[standSpots.length-1][2]+250]);
+	pathArr.push([-4010, standSpots[0][2]+250]);
+	pathArr.push("z");
+	path.setAttribute("d", "M"+pathArr);//finish line
+	info.innerHTML = "World Generated!";
+	setTimeout(function(){
+	  info.innerHTML = "";
+	}, 1500);
+	startGame();
+  }
+});
+
+//main script
+function startGame(){
+  y1 = standSpots[standSpots.length/2][2]-30;//spawn right above middle surface
+  y2 = standSpots[standSpots.length/2][2]-30;
+  game = setInterval(function(){
+	var jumpSpeed = 2;//1-10
+	jumpSpeed /= 10;
+	glide1 += keys[65] ? -speed1 : keys[68] ? speed1 : 0;
+	glide2 += keys[37] ? -speed2 : keys[39] ? speed2 : 0;
+	glide1 += keys[65]&&keys[87] ? -speed1*jumpSpeed : keys[68]&&keys[87] ? speed1*jumpSpeed : 0;
+	glide2 += keys[37]&&keys[38] ? -speed2*jumpSpeed : keys[39]&&keys[38] ? speed2*jumpSpeed : 0;
+    x1 += glide1;
+	x2 += glide2;
+    
+    gravity1-=0.1;
+	gravity2-=0.1;
+    var maxGs = 20;
+	if(gravity1>maxGs){gravity1=maxGs;}
+	if(gravity2>maxGs){gravity2=maxGs;}
+    if(gravity1<-maxGs){gravity1=-maxGs;}
+    if(gravity2<-maxGs){gravity2=-maxGs;}
+    if(standing(1)){//touching ground
+      y1-=0.75;
+      gravity1 = 0;
+      gravity1 += keys[87] ? hops1 : 0;
+    }
+	if(standing(2)){//touching ground
+      y2-=0.75;
+      gravity2 = 0;
+      gravity2 += keys[38] ? hops2 : 0;
+    }
+    y1 -= gravity1;
+	y2 -= gravity2;
+    player1.setAttribute("cx", Math.round(x1/2)*2);
+	player2.setAttribute("cx", Math.round(x2/2)*2);
+    player1.setAttribute("cy", Math.round(y1/1.5)*1.5-6);
+	player2.setAttribute("cy", Math.round(y2/1.5)*1.5-6);
+    glide1*=0.9;
+	glide2*=0.9;
+	var xd = Math.abs(x1-x2);
+    var yd = Math.abs(y1-y2);
+    svg.setAttribute("viewBox", [(x1+x2)/2-(xd+400)/2, (y1+y2)/2-(yd+400)/2, xd+400, yd+400].join(", "));
+  }, 20);
+}
+
+//
+function standing(who){
+  if(who==1){
+    for(i=0;i<standSpots.length;i++){
+      if(x1>=standSpots[i][0]&&x1<=standSpots[i][1]&&y1>=standSpots[i][2]&&y1<=standSpots[i][2]+30){
+        return true;
+      }
+    }
+    return false;
+  }
+  if(who==2){
+    for(i=0;i<standSpots.length;i++){
+      if(x2>=standSpots[i][0]&&x2<=standSpots[i][1]&&y2>=standSpots[i][2]&&y2<=standSpots[i][2]+100){
+        return true;
+      }
+    }
+    return false;
+  }
+}
+</script>

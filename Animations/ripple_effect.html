@@ -1,0 +1,53 @@
+<p id="info"></p>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+var spin = 50;
+var totalX = 462;
+var totalY = 150;
+var animation = 0;
+
+function setup(){
+  createCanvas(400, 400, WEBGL);
+}
+
+function draw(){
+  var spacing = 10;
+  var dx = mouseX-width/2;
+  var dy = mouseY-width/2;
+  background(150);
+  
+  //noStroke();
+  for(y=-150;y<=150;y+=spacing){
+    beginShape(TRIANGLE_STRIP);
+    for(x=-150;x<=150;x+=spacing){
+      var xcol = map(x, -150, 150, 0, 255);
+      var ycol = map(y, -150, 150, 0, 255);
+      var spincol = map(spin, 50, 150, 0, 255);
+      //var b = noise(xcol/50, ycol/50)*255;
+      fill(xcol, 0, ycol);
+      
+      vertex(x, y, getZ(x, y, animation));
+      vertex(x, y+spacing, getZ(x, y+spacing, animation));
+    }
+    endShape();
+  }
+  
+  camera(spin*Math.cos(-totalX/100)*5, -spin*Math.cos(totalY/100)*10, (5*spin)*Math.sin(-totalX/100), 0, 0, 0, 0, 1, 0);
+  
+  totalX += mouseIsPressed ? pmouseX-mouseX : 0;
+  totalY += mouseIsPressed ? pmouseY-mouseY : 0;
+  animation++;
+}
+
+function mouseWheel(event){
+  spin += event.delta/50;
+}
+
+function getZ(x, y, animation){
+  var speed = 8;//speed of waves
+  var waveLen = 6;
+  var amplitude = 35;
+  return Math.sin((Math.sqrt(Math.pow(x/5, 2)+Math.pow(y/5, 2))+animation*speed/30)/waveLen)*amplitude;
+}
+</script>
+<p><b>Zoom out with mouse wheel and Navigate model with the mouse.</b></p>

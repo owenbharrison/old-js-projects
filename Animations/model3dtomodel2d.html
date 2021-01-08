@@ -1,0 +1,59 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var inc = Math.PI/32;
+var range = Math.PI*6;
+var len = 100;
+var turn1 = 0;
+var turn2 = Math.PI/2;
+var ts = 0.025;
+var zoom = 1;
+
+var dots = [];
+
+function setup(){
+  createCanvas(400, 400);
+  
+  //for(i=-(range/inc),a=-range;a<range;a+=inc,i++){
+    //dots.push({x: len*cos(a), y: len*sin(a), z: i/4});
+  //}
+  for(i=0;i<Math.PI*2;i+=Math.PI/16){
+    for(j=0;j<=Math.PI;j+=Math.PI/16){
+      var x = len*cos(i)*cos(j);
+      var y = len*cos(i)*sin(j);
+      var z = len*sin(i);
+      dots.push({x:x,y:y,z:z});
+    }
+  }
+}
+
+
+function draw(){
+  background(170);
+  dots.forEach(d=>{
+    var dp = point3Dtopoint2D(d.x, d.y, d.z, turn1, turn2);
+    push();
+    noStroke();
+    fill(((dp.x+(dp.y/-2))/-10)+50);
+    circle(dp.x*zoom+200, dp.y*zoom+200, 3);
+    pop();
+  });
+  
+  for(i=0;i<dots.length-1;i++){
+    var dpc = point3Dtopoint2D(dots[i].x, dots[i].y, dots[i].z, turn1, turn2);
+    var dpn = point3Dtopoint2D(dots[i+1].x, dots[i+1].y, dots[i+1].z, turn1, turn2);
+    stroke(0);
+    line(dpc.x*zoom+200,dpc.y*zoom+200,dpn.x*zoom+200,dpn.y*zoom+200);
+  }
+  turn1-=keys[37]?ts:keys[39]?-ts:0;
+  turn2-=keys[38]?ts:keys[40]?-ts:0;
+}
+
+function mouseWheel(e){
+  zoom += e.delta/700;
+}
+
+
+function point3Dtopoint2D(xi, yi, zi, t1, t2){
+  return {x: Math.sin(t1)*xi-Math.cos(t1)*zi, y:(Math.cos(t1)*xi+Math.sin(t1)*zi)*Math.cos(t2)+Math.sin(t2)*yi}
+}
+</script>

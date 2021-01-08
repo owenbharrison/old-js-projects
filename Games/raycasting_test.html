@@ -1,0 +1,148 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+//player
+var rot = 0;
+var rs = Math.PI/128;
+var rv = 0;
+var speed = 1;
+var fov = Math.PI/8;//feild of view
+var pos = {x: 200, y: 150}
+var vel = {x: 0, y: 0}
+var nodisp = false;
+
+//game
+var keys = [];
+var path = [];
+
+function setup(){
+  createCanvas(400, 600);
+}
+
+function mousePressed(){
+  path.push({x: mouseX, y: mouseY});
+}
+
+function draw(){
+  background(100);
+  push();
+  fill(0);
+  strokeWeight(5);
+  rect(200, 500, 400, 200);
+  pop();
+  raycast(pos, rot, fov);
+  showPlayer();
+  rectMode(CENTER);
+  textSize(16);
+  textStyle(BOLD);
+  textAlign(CENTER);
+  text("RayCast", 200, 15);
+  text("Render", 200, 395);
+  for(i=0;i<path.length-1;i++){
+    push();
+    line(path[i].x, path[i].y, path[i+1].x, path[i+1].y);
+    pop();
+  }
+}
+
+//running functions
+
+function showPlayer(){
+  if(keys[87]){
+    vel.x += speed*Math.cos(rot);//w
+    vel.y += speed*Math.sin(rot);//w
+  }
+  if(keys[65]){
+    vel.x += speed*Math.cos(rot-Math.PI/2);//a
+    vel.y += speed*Math.sin(rot-Math.PI/2);//a
+  }
+  if(keys[83]){
+    vel.x += speed*Math.cos(rot+Math.PI);//s
+    vel.y += speed*Math.sin(rot+Math.PI);//s
+    
+  }
+  if(keys[68]){
+    vel.x += speed*Math.cos(rot+Math.PI/2);//d
+    vel.y += speed*Math.sin(rot+Math.PI/2);//d
+  }
+  pos.x += vel.x;
+  pos.y += vel.y;
+  vel.x *= 0.8;
+  vel.y *= 0.8;
+  
+  rv += keys[37] ? -rs : keys[39] ? rs : 0;
+  rv *= 0.8;
+  rot += rv;
+  push();
+  noStroke();
+  fill(0, 255, 255);
+  circle(pos.x, pos.y, 15);
+  pop();
+}
+
+function raycast(pos, rot, fov){
+  var vd = 200;//view length
+  var inc = fov/100;
+  var sw = 0.3;
+  for(i=rot-fov;i<rot+fov;i+=inc){//loop(fov)
+    var result = "none";
+    for(j=0;j<vd;j+=2){//loop(vd)
+      for(k=0;k<path.length-1;k++){//loop(path)
+        var linePos = awr(i, pos, j);
+        if(hits(path[k], path[k+1], pos, linePos)){
+          result = "some";
+          //casting
+          push()
+          stroke(255);
+          strokeWeight(sw);
+          line(pos.x, pos.y, linePos.x, linePos.y);
+          pop();
+          
+          //rendering
+          push();
+          var col = map(j, 0, vd, 255, 0);
+          stroke(col);
+          strokeWeight(1);
+          var xp = map(i, rot-fov, rot+fov, 0, 400);
+          var h = map(j*Math.cos(i-rot), 0, 200, 100, 0);
+          line(xp, 500-h, xp, 500+h);
+          pop();
+          j = vd;
+          k = path.length;
+        }
+      }
+    }
+    if(result=="none"){
+      var linePos = awr(i, pos, vd);
+      push();
+      stroke(255);
+      strokeWeight(sw);
+      line(pos.x, pos.y, linePos.x, linePos.y);
+      pop();
+    }
+  }
+}
+
+
+//calulation functions
+
+function awr(rot, pos, length){
+  return {x: length*Math.cos(rot)+pos.x, y:length*Math.sin(rot)+pos.y}
+}
+
+function mouseAngle(pos){
+  return Math.atan2(mouseY-pos.y, mouseX-pos.x);
+}
+
+function hits(n,r,t,x){//minified
+  var y,e,c,i=n.x,u=n.y,a=r.x,f=r.y,o=t.x,s=t.y,v=x.x,b=x.y;
+  return 0!==(y=(a-i)*(b-s)-(v-o)*(f-u))&&(e=((u-f)*(v-i)+(a-i)*(b-u))/y,0<(c=((b-s)*(v-i)+(o-v)*(b-u))/y)&&c<1&&0<e&&e<1);
+}
+
+document.addEventListener("keydown", function(){
+  keys[event.keyCode] = true;
+});
+
+document.addEventListener("keyup", function(){
+  keys[event.keyCode] = false;
+});
+</script>

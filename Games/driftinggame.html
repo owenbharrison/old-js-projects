@@ -1,0 +1,156 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var player;
+var cops = [];
+
+var playerImg;
+var copImg;
+
+function setup(){
+  createCanvas(600, 600);
+  player = new Player(width/2, height/2);
+  playerImg = loadImage("https://upload.wikimedia.org/wikipedia/commons/4/42/257-2576097_car-red-vehicle-automobile-auto-car-clipart-top_%282%29.png");
+  copImg = loadImage("https://img.pngio.com/police-car-png-top-view-transparent-police-car-top-viewpng-images-car-png-topdown-560_280.png");
+  var randomPos = positiononedge();
+  cops.push(new Cop(randomPos.x, randomPos.y));
+}
+
+function draw(){
+  background(170);
+  cops.forEach(cop=>{
+    cop.update();
+    cop.show();
+    cop.chassis.moveTo(player.chassis.pos.x, player.chassis.pos.y);
+  });
+  //player.chassis.moveTo(mouseX, mouseY);
+  player.update();
+  player.show();
+  if(frameCount%300==0){
+    var randomPos = positiononedge();
+    cops.push(new Cop(randomPos.x, randomPos.y));
+  }
+}
+
+function Chassis(x, y, acceleration, drift){
+  this.pos = createVector(x, y);
+  this.vel = createVector();
+  this.acceleration = acceleration;
+  this.crashed = false;
+  this.drift = drift;
+  this.width = 20;
+  this.height = 40;
+  this.speed = 0;
+  this.rot = 0;
+  this.turn = 0;
+  
+  this.update = function(){
+    this.rot+=this.turn*this.speed/25;
+    this.pos.add(this.vel);
+    this.vel.mult(0.9);
+    this.turn *= 0.9;
+    this.speed *= 0.9;
+    this.pos.x=this.pos.x<0?0:this.pos.x>width?width:this.pos.x;
+    this.pos.y=this.pos.y<0?0:this.pos.y>height?height:this.pos.y;
+  }
+  
+  this.forward = function(){
+    this.speed+=this.acceleration;
+    this.vel.x += cos(this.rot+this.turn)*0.8;
+    this.vel.y += sin(this.rot+this.turn)*0.8;
+  }
+  
+  
+  this.backward = function(){
+    this.speed+=this.acceleration;
+    this.vel.x -= cos(this.rot+this.turn)*0.8;
+    this.vel.y -= sin(this.rot+this.turn)*0.8;
+  }
+  
+  this.left = function(){this.turn-=drift/100;}
+  this.right = function(){this.turn+=drift/100;}
+  
+  this.boundingBox = function(){
+    var front = p5.Vector.fromAngle(this.rot+this.turn/2, this.height/2);
+    var back = p5.Vector.fromAngle(this.rot+this.turn/2+Math.PI, this.height/2);
+    var left = p5.Vector.fromAngle(this.rot+this.turn/2-Math.PI/2, this.width/2);
+    var right = p5.Vector.fromAngle(this.rot+this.turn/2+Math.PI/2, this.width/2);
+    var points = [p5.Vector.add(front, left).add(this.pos), p5.Vector.add(front, right).add(this.pos), p5.Vector.add(back, left).add(this.pos), p5.Vector.add(back, right).add(this.pos)];
+    return [{p0: points[0], p1: points[1]}, {p0: points[1], p1: points[2]}, {p0: points[2], p1: points[3]}, {p0: points[3], p1: points[0]}];
+  }
+  
+  this.moveTo = function(x, y){
+    var place = createVector(x, y);
+    var a = p5.Vector.sub(place, this.pos);
+    var b = createVector(this.vel.x, this.vel.y);
+    var cross = a.cross(b);
+    this.forward();
+    cross.z>0?this.left():this.right();
+  }
+}
+
+function Player(x, y){
+  this.chassis = new Chassis(x, y, 0.15, 12);
+  
+  this.update = function(){
+    this.chassis.update();
+    keys[32]||keys[38]?this.chassis.forward():keys[40]?this.chassis.backward():null;
+    keys[37]?this.chassis.left():keys[39]?this.chassis.right():null;
+    cops.forEach(cop=>{
+      this.checkCollision(cop);
+    });
+  }
+  
+  this.checkCollision = function(other){
+    var res = false;
+    this.chassis.boundingBox().forEach(bl=>{
+      other.chassis.boundingBox().forEach(ol=>{
+        if(intersects(bl.p0, bl.p1, ol.p0, ol.p1)){
+          res = true;
+        }
+      });
+    });
+    if(res){
+      push();
+      noStroke();
+      fill(255, 0, 0, 150);
+      rect(0, 0, width, height);
+      pop();
+    }
+  }
+  
+  this.show = function(){
+    push();
+    translate(this.chassis.pos.x, this.chassis.pos.y);
+    rotate(this.chassis.rot+Math.PI/2+this.chassis.turn/1.5);
+    imageMode(CENTER, CENTER);
+    image(playerImg, 0, 0, 20, 40);
+    pop();
+  }
+}
+
+function Cop(x, y){
+  this.chassis = new Chassis(x, y, 0.1, 14);
+  
+  this.update = function(){
+    this.chassis.update();
+  }
+  
+  this.show = function(){
+    push();
+    translate(this.chassis.pos.x, this.chassis.pos.y);
+    rotate(this.chassis.rot+Math.PI+this.chassis.turn/1.5);
+    imageMode(CENTER, CENTER);
+    image(copImg, 0, 0, 47, 26);
+    pop();
+  }
+}
+
+function positiononedge(){
+  if(random(1)>0.5){//x edges
+    return createVector(random(width), round(random(1))*height);
+  }
+  else{//y edges
+    return createVector(round(random(1))*width, random(height));
+  }
+}
+</script>

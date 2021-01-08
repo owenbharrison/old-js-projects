@@ -1,0 +1,47 @@
+<script>
+var board = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]];
+var real = "\n"+board[0].join(" | ")+"\n"+board[1].join(" | ")+"\n"+board[2].join(" | ")+"\n";
+var pos;
+while(checkWinner()=="none"){
+  for(i=0;i<=1;i++){
+    var player= i==0 ? "x" : "o";
+    var pn = player=="x" ? 1 : 2; 
+    if(checkWinner()=="none"){
+      pos = prompt("Board:"+real+"Where do you(player"+pn+") want to go?");
+    }
+    else{
+      alert("We Have A Winner!\n---"+checkWinner()+"---");
+    }
+    console.log(pos);
+    pos = pos.split(" ");
+    var y = pos[0];
+    var x = pos[1];
+    if(board[x][y]==" "){
+      board[x][y] = player;
+    }
+    real = "\n"+board[0].join(" | ")+"\n"+board[1].join(" | ")+"\n"+board[2].join(" | ")+"\n";
+  }
+}
+
+function checkWinner(){
+  var result;
+  for(x=0;x<3;x++){
+    if(ask3(board[x][0], board[x][1], board[x][2])){
+      result = board[x][0];
+    }
+  }
+  for(y=0;y<3;y++){
+    if(ask3(board[0][y], board[1][y], board[2][y])){
+      result = board[0][y];
+    }
+  }
+  if(ask3(board[0][0], board[1][1], board[2][2])||ask3(board[0][2], board[1][1], board[2][0])){
+    return board[0][0];
+  }
+  return "none";
+}
+
+function ask3(a, b, c){
+  return (a==b&&b==c&&a!=" ");
+}
+</script>

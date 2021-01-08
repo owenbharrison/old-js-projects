@@ -1,0 +1,199 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var player;
+var gravity;
+var ground = [];
+
+var playerImg;
+var gunImg;
+
+var bulletCount = 0;
+
+function setup(){
+  var canvas = createCanvas(600, 400);
+  player = new Player(width/2, 200);
+  gravity = createVector(0, 0.5);
+  for(i=-width*2;i<=width*3;i+=2){
+    ground.push(createVector(i, noise(i/200)*height/2+height/2));
+  }
+  playerImg = createImg("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Man_Walking_Cartoon_Vector.svg/1280px-Man_Walking_Cartoon_Vector.svg.png")
+  playerImg.hide();
+  createP("WASD to move, left-click to fire bullet");
+  gunImg = createImg("https://upload.wikimedia.org/wikipedia/commons/e/ee/Gun_outline.svg");
+  gunImg.hide();
+}
+
+
+function draw(){
+  background(0, 150, 255);
+  
+  translate(width/2-player.pos.x, 0);
+  //draw ground
+  push();
+  fill(145, 76, 0);
+  strokeWeight(4);
+  stroke(0, 255, 70);
+  beginShape();
+  ground.forEach(p=>{
+    vertex(p.x, p.y);
+  });
+  vertex(width*3, height+50);
+  vertex(-width*2, height+50);
+  endShape(CLOSE);
+  pop();
+  player.update();
+  player.show();
+  player.vel.x += keys[65]?-0.35:keys[68]?0.35:0;
+  
+  if(mouseIsPressed){
+    if(bulletCount>=player.bullets.length){
+      bulletCount = 0;
+    }
+    if(player.bullets[bulletCount].landed){
+      player.bullets[bulletCount].shoot();
+      bulletCount++;
+    }
+  }
+}
+
+
+function Player(x, y){
+  this.pos = createVector(x, y);
+  this.vel = createVector();
+  this.acc = createVector();
+  this.bullets = [];
+  for(i=0;i<20;i++){
+    this.bullets[i] = new Bullet(this);
+  }
+  
+  this.update = function(){
+    this.pos.add(this.vel);
+    this.vel.mult(0.92);
+    if(this.checkGround()){
+      this.pos.add(this.vel);
+      this.vel.y = 0;
+      while(this.checkGround()){
+        this.pos.y-=1.5;
+      }
+      keys[87]?this.jump():null;
+    }else{
+      this.applyForce(gravity);
+    }
+  }
+  
+  this.checkGround = function(){
+    var touch = false;
+    var prev = null;
+    ground.forEach(gp=>{
+      if(prev!=null&&!touch){
+        touch = pointlineintersect(prev, gp, this.pos, 15);
+      }
+      prev = gp;
+    });
+    return touch;
+  }
+  
+  this.jump = function(){
+    player.applyForce(createVector(0, -10));
+  }
+  
+  this.applyForce = function(force){
+    this.acc = force;
+    this.vel.add(this.acc);
+  }
+  
+  this.show = function(){
+    push();
+    
+    translate(this.pos.x, this.pos.y);
+    rotate(map(this.vel.x, -8, 8, -Math.PI/6, Math.PI/6));
+    image(playerImg, -35, -25, 70, 50);
+    pop();
+    
+    push();
+    translate(this.pos.x+12, this.pos.y-1);
+    rotate(magicangle(realMousePos(), {x: this.pos.x+9, y: this.pos.y-1}))
+    stroke(140);
+    strokeWeight(3);
+    imageMode(CENTER);
+    image(gunImg, 0, 0, 11, 7)
+    pop();
+    
+    this.bullets.forEach(b=>{
+      b.update();
+      b.checkGround();
+      b.show();
+    });
+    
+    
+  }
+}
+
+function Bullet(parent){
+  this.pos = createVector();
+  this.vel = createVector();
+  this.acc = createVector();
+  this.beenshot = false;
+  this.landed = false;
+  this.parent = parent;
+  
+  
+  this.update = function(){
+    this.pos.add(this.vel);
+    if(this.checkGround()){
+      this.vel = createVector();
+      this.landed = true;
+    }
+    else{
+      this.applyForce(gravity);
+      this.landed = false;
+    }
+  }
+  
+  this.checkGround = function(){
+    var touch = false;
+    var prev = null;
+    ground.forEach(gp=>{
+      if(prev!=null&&!touch){
+        touch = pointlineintersect(prev, gp, this.pos, 15);
+      }
+      prev = gp;
+    });
+    if(!touch){
+      touch = (this.pos.x<-width*2||this.pos.x>width*3);
+      
+    }
+    return touch;
+  }
+  
+  this.applyForce = function(force){
+    this.acc = force;
+    this.vel.add(this.acc);
+  }
+  
+  this.shoot = function(){
+    this.beenshot = true;
+    this.landed = false;
+    this.pos.x = this.parent.pos.x;
+    this.pos.y = this.parent.pos.y;
+    var va = magicangle(realMousePos(), this.pos);
+    var vl = map(dist(realMousePos().x, realMousePos().y, this.pos.x, this.pos.y), 0, width, 5, 30);
+    var vp = awr(createVector(), va, vl);
+    this.vel.x = vp.x;
+    this.vel.y = vp.y;
+  }
+  
+  this.show = function(){
+    push();
+    translate(this.pos.x, this.pos.y);
+    rotate(magicangle(this.pos, createVector(this.pos.x-this.vel.x, this.pos.y-this.vel.y)));
+    fill(30);
+    ellipse(0, 0, 12, 3);
+    pop();
+  }
+}
+
+function realMousePos(){
+  return createVector(player.pos.x+mouseX-width/2, mouseY);
+}
+</script>

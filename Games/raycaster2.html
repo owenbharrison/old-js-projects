@@ -1,0 +1,60 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var vd = 210;
+var poses = [{x: 175, y:225}];
+
+function setup(){
+  createCanvas(400, 400);
+  background(170);
+  push();
+  noFill();
+  strokeWeight(4);
+  circle(200, 200, 200);
+  pop();
+}
+
+function mousePressed(){
+  var outposes = [];
+  poses.forEach(function(pos){
+    var rayout = raycast(pos);
+    for(i in rayout){
+      outposes.push(rayout[i]);
+    }
+  });
+  poses = outposes;
+  push();
+  noFill();
+  strokeWeight(4);
+  circle(200, 200, 200);
+  pop();
+}
+
+function raycast(pos){
+  var inc = Math.PI/2;
+  var allPos = [];
+  loadPixels();
+  var p = pixels;
+  updatePixels();
+  for(r=0;r<Math.PI*2;r+=inc){
+    var result = null;
+    for(l=2;l<vd;l++){
+      var lp = awr(pos, r, l);
+      roundoff(lp);
+      var z = (lp.x+lp.y*width)*4;
+      if(p[z]==0){
+        result = "rough";
+        l-=2;
+      }
+      if(result=="rough"&&(p[z]!=0)){
+        push();
+        stroke(255);
+        line(pos.x, pos.y, lp.x, lp.y);
+        allPos.push(lp);
+        pop();
+        l=vd;
+      }
+    }
+  }
+  return allPos;
+}
+</script>

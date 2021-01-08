@@ -1,0 +1,95 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+var bs = 95;
+var points = [];
+var chosen = [];
+var choices = 0;
+var output = "";
+
+function setup(){
+  createCanvas(400, 400);
+}
+function draw(){
+  background(170);
+  rectMode(CENTER);
+  for(x=100;x<=300;x+=100){
+    for(y=100;y<=300;y+=100){
+      var x_ = x/100;
+      var y_ = y/100;
+      rect(x, y, bs, bs, 10);
+      pop();
+      push();
+      textSize(50);
+      textStyle(BOLD);
+      textAlign(CENTER, CENTER);
+      text((x_+y_*3)-3, x, y);
+      pop();
+    }
+  }
+  push();
+  textSize(45);
+  textStyle(BOLD);
+  textAlign(CENTER, CENTER);
+  text(output, width/2, 30);
+  pop();
+  output = checkStroke();
+  push();
+  noFill();
+  stroke(0);
+  strokeWeight(5);
+  beginShape();
+  points.forEach(function(point){
+    vertex(point.x, point.y)
+  });
+  endShape();
+  pop();
+}
+
+function checkStroke(){
+  var size = 10;
+  var out = "";
+  var arr = [];
+  for(i=0;i<points.length;i+=size){
+    arr.push(points[i]);
+  }
+  var prev = null;
+  for(i=0;i<arr.length;i++){
+    if(i!=0){
+      prev = arr[i-1];
+      if(i!=arr.length-1){
+        var angle2 = Math.abs(180-gma(arr[i-1], arr[i], arr[i+1]));
+        if(angle2>45){
+          chosen.push({x: arr[i].x, y: arr[i].y, num: choices});
+          choices++;
+          var index = (Math.round(arr[i].x/100)+Math.round(arr[i].y/100)*3)-3;
+          out += index;
+        }
+      }
+    }
+  }
+  return out;
+}
+
+function mouseDragged(event){
+  if(event.which==1&&inRange(mouseX, 100-bs/2, 300+bs/2)&&inRange(mouseY, 100-bs/2, 300+bs/2)){
+    points.push({x: mouseX, y: mouseY});
+  }
+}
+function mousePressed(event){
+  if(event.button==1){
+    checkStroke();
+    points = [];
+  } 
+}
+
+function gma(a,b,c){
+  var h=Math.pow(b.x-a.x,2)+Math.pow(b.y-a.y,2),
+  o=Math.pow(c.x-b.x,2)+Math.pow(c.y-b.y,2),
+  p=(h+o-(Math.pow(c.x-a.x,2)+Math.pow(c.y-a.y,2)))/(2*Math.sqrt(h)*Math.sqrt(o)),
+  w=Math.acos(p)*180/Math.PI;
+  return w;
+}
+function inRange(n, a, b){
+  return (n>Math.min(a, b)&&n<Math.max(a, b));
+}
+</script>

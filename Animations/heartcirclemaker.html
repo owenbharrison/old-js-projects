@@ -1,0 +1,65 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.js"></script>
+<script>
+let img;
+var cat = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTiBjnCHmg6X7YGEZ4vY_sYT1bcYtwzFYDFujnWyyOhCmzuV_421w&s"; 
+var heart = "https://media.ldscdn.org/images/media-library/primary/primary-symbols/nursery-manual-symbols/heart-1232299-gallery.jpg"
+var mw;
+var mh;
+var fov = Math.PI/3;
+var path = [];
+var angle = 0;
+
+function preload(){
+  img = loadImage(heart);
+}
+
+function setup(){
+  createCanvas(600, 600);
+}
+
+function draw(){
+  background(0);
+  mw = width/2;//mouseIsPressed ? mouseX : mw;
+  mh = height/2;//mouseIsPressed ? mouseY : mh;
+  image(img, 0, 0, width, height);
+  loadPixels();
+  var lenarr = [];
+  var inc= Math.PI/50;
+  for(r=0;r<Math.PI*2;r+=inc){
+    for(l=0;l<width/2;l++){
+      var lp = awr(r, l);
+      lp.x+=mw;
+      lp.y+=mh;
+      lp = roundoff(lp);
+      var i = (lp.x+lp.y*width)*4;
+      var p = pixels;
+      var b = (p[i]+p[i+1]+p[i+2])/3;
+      if(b<170){
+        lenarr.push(l);
+        l = width/2;
+      }
+    }
+  }
+  for(i in lenarr){
+    var radius = 10;
+    var num = Math.floor(lenarr[i]/radius)*radius;
+    for(l=0;l<num;l+=radius){
+      var lp = awr(i*inc, l);
+      push();
+      noStroke();
+      fill(0);
+      circle(lp.x+mw, lp.y+mh, 5);
+      pop();
+    }
+  }
+}
+
+function awr(rot, len){
+  return {x: len*Math.cos(rot), y: len*Math.sin(rot)}
+}
+
+function roundoff(pos){
+  return {x: Math.round(pos.x), y: Math.round(pos.y)}
+}
+</script>

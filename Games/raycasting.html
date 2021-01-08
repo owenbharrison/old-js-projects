@@ -1,0 +1,57 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+var rot=0,rs=Math.PI/128,rv=0,speed=1,fov=Math.PI/8,pos={x:61,y:173},vel={x:0,y:0},auto=!1,reset=!1,keys=[],path=[{x:36,y:148},{x:37,y:205},{x:184,y:204},{x:202,y:243},{x:50,y:282},{x:41,y:340},{x:202,y:356},{x:349,y:290},{x:367,y:139},{x:272,y:37},{x:167,y:109},{x:159,y:54},{x:36,y:149}];
+function setup(){
+  createCanvas(400,600)
+}
+function mousePressed(){
+  1==event.button&&(1==reset&&(path=[],reset=!1),path.push({x:mouseX,y:mouseY}),console.log("pathChange: "+JSON.stringify(path)))
+}
+function draw(){
+  for(background(100),push(),fill(0),strokeWeight(5),rect(200,500,400,200),pop(),raycast(pos,rot,fov),showPlayer(),rectMode(CENTER),textSize(16),textStyle(BOLD),textAlign(CENTER),text("RayCast",200,15),text("Render",200,395),i=0;i<path.length-1;i++)
+  push(),line(path[i].x,path[i].y,path[i+1].x,path[i+1].y),pop()
+}
+function showPlayer(){
+  keys[87]&&move(0),keys[65]&&move(-Math.PI/2),keys[83]&&move(Math.PI),keys[68]&&move(Math.PI/2),vel.x*=.8,vel.y*=.8,rv+=keys[37]?-rs:keys[39]?rs:0,rot+=rv*=.8,push(),noStroke(),fill(0,255,255),circle(pos.x,pos.y,15),pop()
+}
+function move(e){
+  vel.x+=speed*Math.cos(rot+e),vel.y+=speed*Math.sin(rot+e),pos.x+=vel.x,pos.y+=vel.y
+}
+function raycast(e,t,o){
+  for(i=t-o;i<t+o;i+=o/50){
+    var s="none";
+    for(j=0;j<200;j+=1)
+    for(k=0;k<path.length-1;k++){
+      var r=awr(i,e,j);
+      if(hits(path[k],path[k+1],e,r)){
+        s="some",push(),stroke(255),strokeWeight(.3),line(e.x,e.y,r.x,r.y),pop(),push();
+        var a=map(j,0,200,255,0);
+        stroke(a),strokeWeight(4);
+        var n=map(i,t-o,t+o,0,400),y=map(j*Math.cos(i-t),0,200,100,0);
+        line(n,500-y,n,500+y),pop();
+        var p=o/150;
+        auto&&i<t+p&&i>t-p&&(y<50?move(0):rv+=rs,t+=rv),j=200,k=path.length
+      }
+    }
+    if("none"==s){
+      r=awr(i,e,200);
+      push(),stroke(255),strokeWeight(.3),line(e.x,e.y,r.x,r.y),pop()
+    }
+  }
+}
+function awr(e,t,o){
+  return{x:o*Math.cos(e)+t.x,y:o*Math.sin(e)+t.y}
+}
+
+function hits(e,t,o,s){
+  var r,a,n,y=e.x,i=e.y,p=t.x,h=t.y,x=o.x,v=o.y,u=s.x,k=s.y;
+  return 0!=(r=(p-y)*(k-v)-(u-x)*(h-i))&&(a=((i-h)*(u-y)+(p-y)*(k-i))/r,0<(n=((k-v)*(u-y)+(x-u)*(k-i))/r)&&n<1&&0<a&&a<1)
+}
+
+document.addEventListener("keydown",function(){
+  keys[event.keyCode]=!0
+}),
+document.addEventListener("keyup",function(){
+  keys[event.keyCode]=!1
+});
+</script>

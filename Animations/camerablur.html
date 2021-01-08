@@ -1,0 +1,41 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
+<script>
+let cam;
+var size = 10;
+
+function setup() {
+  createCanvas(720, 540);
+  cam = createCapture(VIDEO);
+  cam.hide();
+}
+
+function draw() {
+  background(50);
+  push();
+  image(cam, 0, 0, width, height);
+  translate(cam.width, 0);
+  scale(-1, 1);
+  pop();
+  loadPixels();
+  var p = pixels;
+  updatePixels();
+  push();
+  fill(0);
+  rect(0, 0, width, height);
+  pop();
+  for(y=size/2;y<height;y+=size){
+    for(x=size/2;x<width;x+=size){
+      var z = (x+y*width)*4;
+      var r = p[z+0];
+      var g = p[z+1];
+      var b = p[z+2];
+      var bright = (r+g+b)/3;
+      push();
+      pop()
+      circle(x, y, size);
+      fill(r, g, b);
+    }
+  }
+}
+</script>

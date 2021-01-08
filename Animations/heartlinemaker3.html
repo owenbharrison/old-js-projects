@@ -1,0 +1,54 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.js"></script>
+<script>
+let img;
+var mw;
+var mh;
+var fov = Math.PI/3;
+var path = [];
+var angle = 0;
+
+function preload(){
+  img = loadImage("https://media.ldscdn.org/images/media-library/primary/primary-symbols/nursery-manual-symbols/heart-1232299-gallery.jpg");
+}
+
+function setup(){
+  createCanvas(600, 600);
+}
+
+function draw(){
+  background(0);
+  mw = mouseIsPressed ? mouseX: mw;
+  mh = mouseIsPressed ? mouseY: mh;
+  image(img, 0, 0, width, height);
+  loadPixels();
+  for(r=0;r<Math.PI*2;r+=Math.PI/50){
+    for(l=0;l<width;l++){
+      var lp = awr(r, l);
+      lp.x+=mw;
+      lp.y+=mh;
+      lp = roundoff(lp);
+      var i = (lp.x+lp.y*width)*4;
+      var p = pixels;
+      var b = (p[i]+p[i+1]+p[i+2])/3;
+      if(b<170){
+        push();
+        strokeWeight(0.5);
+        stroke(0);
+        line(mw, mh, lp.x, lp.y);
+        path.push(lp);
+        pop();
+        l=width;
+      }
+    }
+  }
+}
+
+function awr(rot, len){
+  return {x: len*Math.cos(rot), y: len*Math.sin(rot)}
+}
+
+function roundoff(pos){
+  return {x: Math.round(pos.x), y: Math.round(pos.y)}
+}
+</script>
