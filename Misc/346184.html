@@ -1,0 +1,62 @@
+RAINBOW!!!<br>
+<div>
+  <video id="v" width="480" height="360" autoplay=""></video>
+</div>
+<div>
+  <canvas id="c" width="480" height="360"></canvas>
+</div>
+<script> 
+document.addEventListener('DOMContentLoaded', function() {
+  var v = document.getElementById('v');
+  var canvas = document.getElementById('c');
+  var context = canvas.getContext('2d');
+  var back = document.createElement('canvas');
+  var backcontext = back.getContext('2d');
+
+  var cw, ch;
+
+  v.addEventListener('play', function() {
+    cw = v.clientWidth;
+    ch = v.clientHeight;
+    canvas.width = cw;
+    canvas.height = ch;
+    back.width = cw;
+    back.height = ch;
+    draw(v, context, backcontext, cw, ch);
+  }, false);
+
+}, false);
+
+function draw(v, c, bc, w, h) {
+  if(v.paused || v.ended) return false;
+  bc.drawImage(v, 0, 0, w, h);
+  var idata = bc.getImageData(0, 0, w, h);
+  var data = idata.data;
+  for(x=0;x<480;x++){
+    for(y=0;y<360;y++){  
+      var i = (x+y*480)*4;
+      data[i] = x;
+      data[i + 2] = y;
+    }
+  }
+
+  idata.data = data;
+  c.putImageData(idata, 0, 0);
+  setTimeout(draw, 20, v, c, bc, w, h);
+}
+</script>
+<script>
+var video = document.getElementById('v');
+if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+    video.srcObject = stream;
+    video.play();
+  });
+}
+</script>
+<style>
+div{
+  position: absolute;
+  margin: auto;
+}
+</style>

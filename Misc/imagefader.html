@@ -1,0 +1,57 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+console.clear();
+let img1, img2;
+var pix_set_1, pix_set_2;
+var vals = [];
+var pix_set_3 = [];
+
+function preload(){
+  img1 = loadImage("https://images.pexels.com/users/avatars/393237/allaroundflorida-777.jpeg?w=256&h=256&fit=crop&crop=faces");
+  img2 = createImg("https://secure.gravatar.com/avatar/aea34c1741caad3e9b732263549e390c?s=128&r=g");
+  img2.hide();
+}
+
+function setup(){
+  createCanvas(400, 400);
+  image(img1, 0, 0, width, height);
+  loadPixels();
+  pix_set_1 = pixels;
+  updatePixels();
+  image(img2, 0, 0, width, height);
+  loadPixels();
+  pix_set_2 = pixels;
+  updatePixels();
+  image(img1, 0, 0, width, height);
+}
+
+function mousePressed(){
+  var ft = 15;
+  var count = 0;
+  vals = [];
+  for(y=0;y<height;y++){
+    for(x=0;x<width;x++){
+      var z = (x+y*width)*4;
+      vals.push((pix_set_2[z+0]-pix_set_1[z+0])/ft);
+      vals.push((pix_set_2[z+1]-pix_set_1[z+1])/ft);
+      vals.push((pix_set_2[z+2]-pix_set_1[z+2])/ft);
+      vals.push(255);
+    }
+  }
+  var timer = setInterval(function(){
+    loadPixels();
+    for(i=0;i<pixels.length;i++){
+      pixels[i+0] = (vals[i+0]*count)+pix_set_1[i+0];
+      pixels[i+1] = (vals[i+1]*count)+pix_set_1[i+1];
+      pixels[i+2] = (vals[i+2]*count)+pix_set_1[i+2];
+      pixels[i+3] = (vals[i+3]*count)+pix_set_1[i+3];
+    }
+    updatePixels();
+    count++;
+    if(count>=ft+1){
+      clearInterval(timer);
+      console.log("done");
+    }
+  });
+}
+</script>

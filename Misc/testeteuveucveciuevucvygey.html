@@ -1,0 +1,9 @@
+<script src="https://cloudvar.owenharrison1.repl.co/script.js"></script>
+<script>
+var cloud = new Cloudvar("cloud", 0);
+
+document.onmousedown = function(event){
+  cloud.put(cloud.data+1);
+  console.log(cloud.data);
+}
+</script>

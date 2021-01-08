@@ -1,0 +1,49 @@
+<input type = "text" id = "textBox"  onkeyup = "reloadValue()"></button>
+<a id = 1 onclick = "setValue(1)"></a>
+<a id = 2 onclick = "setValue(2)"></a>
+<a id = 3 onclick = "setValue(3)"></a>
+<a id = 4 onclick = "setValue(4)"></a>
+<a id = 5 onclick = "setValue(5)"></a>
+<a id = 6 onclick = "setValue(6)"></a>
+<a id = 7 onclick = "setValue(7)"></a>
+<a id = 8 onclick = "setValue(8)"></a>
+<a id = 9 onclick = "setValue(9)"></a>
+<a id = 10 onclick = "setValue(10)"></a>
+<style>
+a:hover{
+  font-size: 18px;
+}
+</style>
+<script>
+function reloadValue() {
+  getContent(url, document.getElementById("textBox").value, false);
+  document.title = "Suggestions for: "+ document.getElementById("textBox").value;
+}
+var url = "https://api.datamuse.com/sug?s=";
+function getContent(url, word, returnNums){
+  var allWords = [];
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", url+word, false);
+  xmlhttp.send(null);
+  var x = xmlhttp.responseText;
+  x = x.split("\"");
+  for(i=1;i<((x.length-1)/6)+1;i++){
+    allWords.push(x[i*6-3]);
+  }
+  if(returnNums==false){
+    for(i=1;i<11;i++){
+      if(allWords[i-1]==undefined){
+        allWords[i-1]="";
+      }
+      document.getElementById(i).innerHTML = "<br>"+allWords[i-1];
+    }
+  }
+  if(returnNums==true){
+    return allWords;
+  }
+}
+function setValue(num) {
+  document.getElementById("textBox").value = getContent(url, document.getElementById("textBox").value, true)[num-1];
+  getContent(url, document.getElementById("textBox").value, false);
+}
+</script>

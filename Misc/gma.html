@@ -1,0 +1,9 @@
+<script>
+function gma(a,b,c){
+  var h=Math.pow(b.x-a.x,2)+Math.pow(b.y-a.y,2),
+  o=Math.pow(c.x-b.x,2)+Math.pow(c.y-b.y,2),
+  p=(h+o-(Math.pow(c.x-a.x,2)+Math.pow(c.y-a.y,2)))/(2*Math.sqrt(h)*Math.sqrt(o)),
+  w=Math.acos(p)*180/Math.PI;
+  return w;
+}
+</script>

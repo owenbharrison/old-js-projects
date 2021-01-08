@@ -1,0 +1,100 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var particles = [];
+var dampen = 3;
+var gravity = 1;
+var sidelen = 25;
+var jointsize = 8;
+
+function setup(){
+  createCanvas(400, 400);
+  var startpos = {x: 200, y: 200}
+  var sides = 3;
+  for(i=0;i<sides;i++){
+    var lp = awr(startpos, i*Math.PI*2/sides, sidelen)
+    particles.push(new Particle(lp.x, lp.y, jointsize));
+  }
+}
+
+function draw(){
+  background(170);
+  line(0, 380, width, 380);
+  particles.forEach(function(particle){
+    particles.forEach(function(other){
+      if(particle!=other){
+        spring(particle, other, sidelen);
+      }
+    });
+  });
+  
+  particles.forEach(function(particle){
+    particle.show();
+    particle.checkCollision();
+    particle.mouseConstraint();
+  });
+}
+
+
+function Particle(x, y, r){
+  this.pos = {x: x, y: y};
+  this.vel = {x: 0, y: 0};
+  this.acc = {x: 0, y: 0};
+  this.r = r;
+  
+  
+  this.mda = 0;//mousedistalways
+  this.mdl = 0;//mousedistlocked
+  
+  this.addForce = function(x, y){
+    this.acc = {x: x, y: y};
+    this.vel.x += this.acc.x;
+    this.vel.y += this.acc.y;
+    this.acc = {x: 0, y: 0};
+  }
+  
+  this.checkCollision = function(){
+    if(this.pos.y<380-this.r/2){//above ground
+      this.addForce(0, gravity);
+    }else{//in the ground
+      this.vel.y = 0;
+      this.pos.y = 380-this.r/2;
+    }
+  }
+  
+  this.mouseConstraint = function(){
+    this.mda = distance(mouseX-this.pos.x, mouseY-this.pos.y);
+    if(!mouseIsPressed){this.mdl = this.mda;}
+    
+    if(mouseIsPressed&&this.mdl<10){
+      var lp = awr({x: mouseX, y: mouseY}, magicangle(this.pos, {x: mouseX, y: mouseY}), 0);
+      this.addForce((lp.x-this.pos.x)/(dampen/2), (lp.y-this.pos.y)/(dampen/2));
+      push();
+      stroke(255);
+      line(mouseX, mouseY, this.pos.x, this.pos.y);
+      pop();
+    }
+  }
+  
+  this.show = function(){
+    this.pos.x += this.vel.x;
+    this.pos.y += this.vel.y;
+    this.vel.x *= 0.95;
+    this.vel.y *= 0.95;
+    push();
+    noStroke();
+    circle(this.pos.x, this.pos.y, this.r);
+    pop();
+  }
+}
+
+function spring(p0, p1, len){
+  var lp = awr(p1.pos, magicangle(p0.pos, p1.pos), len);
+  p0.addForce((lp.x-p0.pos.x)/dampen, (lp.y-p0.pos.y)/dampen);
+  p1.addForce(-(lp.x-p1.pos.x)/dampen, -(lp.y-p1.pos.y)/dampen);
+  push();
+  strokeWeight(jointsize/2);
+  line(p0.pos.x, p0.pos.y, p1.pos.x, p1.pos.y);
+  pop();
+}
+
+</script>

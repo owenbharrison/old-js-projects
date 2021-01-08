@@ -1,0 +1,16 @@
+<button onclick="start()">start</button>
+<button onclick="end()">end</button>
+<script>
+var star;
+var end;
+var elapsed;
+function start(){
+  start = Date.now();
+}
+
+function end(){
+  end = Date.now()
+  elapsed = end - start;
+  console.log(elapsed/1000);
+}
+</script>

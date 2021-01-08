@@ -1,0 +1,20 @@
+<script>
+var st = "var c=129,a=6,b=7,j=9,e=0.123234,j=j*a*e/b*c/g;alert(j/5*17*b/e-g);if(j>1%6>6){b=67,j=b,b=a,a=c,c=e;}if(e==b-a*2-3){e=j-e-a-b;}";
+var output;
+st = st.split("");
+var space = [];
+for(i=0;i<st.length;i++){
+  if(st[i]==","||st[i]==";"||st[i]=="{"){
+    st[i] += "<br>"+space.join("");
+  }
+  
+  if(st[i]=="}"){
+  }
+  if((st[i-1]!=="=")&&(st[i]=="=")&&(st[i+1]!=="=")){
+    st[i] = " "+st[i]+" ";
+  }
+}
+output = st.join("");
+
+document.write("unobfuscated nonsense code: <br><br>"+output);
+</script>

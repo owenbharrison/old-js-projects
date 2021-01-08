@@ -1,0 +1,25 @@
+<input type = "text" id = "textBox"></button>
+<a id = 1 onclick = "setValue(1)"></a>
+<a id = 2 onclick = "setValue(2)"></a>
+<a id = 3 onclick = "setValue(3)"></a>
+<a id = 4 onclick = "setValue(4)"></a>
+<a id = 5 onclick = "setValue(5)"></a>
+<a id = 6 onclick = "setValue(6)"></a>
+<a id = 7 onclick = "setValue(7)"></a>
+<a id = 8 onclick = "setValue(8)"></a>
+<a id = 9 onclick = "setValue(9)"></a>
+<a id = 10 onclick = "setValue(10)"></a>
+<style>
+a:hover{
+  font-size: 18px;
+}
+</style>
+<script>
+var allWords = ["experience", "express", "exchange", "exploit", "expedite", "extract", "existential", "extant", "exercise", "explicit"];
+for(i=1;i<11;i++){
+  document.getElementById(i).innerHTML = "<br>"+allWords[i-1];
+}
+function setValue(num) {
+  document.getElementById("textBox").value = allWords[num-1];
+}
+</script>

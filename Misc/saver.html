@@ -1,0 +1,28 @@
+<button onclick="load()">Load:</button>
+<input style="width: 50" id="input"/>
+<button onclick="save()">Save</button>
+<button onclick="erase()">Clear</button><br>
+<textarea id="textarea" style="width: 206; height: 150; resize: none">sample text</textarea>
+<script>
+
+var text = document.getElementById("textarea");
+var input = document.getElementById("input");
+function load(){
+  var doc = localStorage.getItem(input.value);
+  if(doc!=null){
+    text.value = doc;
+  }
+}
+
+function save(){
+  localStorage.setItem(input.value, text.value);
+}
+
+text.onchange = function(){
+  save();
+}
+
+function erase(){
+  text.value = "";
+}
+</script>

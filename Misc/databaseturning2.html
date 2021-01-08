@@ -1,0 +1,91 @@
+<script src="https://www.gstatic.com/firebasejs/3.6.3/firebase-app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script src="https://www.gstatic.com/firebasejs/3.1.0/firebase-database.js"></script>
+<script>
+var database, ref, user;
+
+var keys = [];
+var rot = 0;
+var rs = Math.PI/300;
+var speed = 0.75;
+var vel = 0;
+var rv = 0;
+var r, b, y, g;
+var eyeDist = 8;
+
+function setup(){
+  user = prompt("What player are you?");
+  user = user[0];
+  var config = {
+    apiKey: "AIzaSyBVdnU-wHYuL_m2y_xtXqC1J6_f8OGdawY",
+    authDomain: "database-5562f.firebaseapp.com",
+    databaseURL: "https://database-5562f.firebaseio.com",
+    projectId: "database-5562f",
+    storageBucket: "database-5562f.appspot.com",
+    messagingSenderId: "58326515441",
+    appId: "1:58326515441:web:ddb364e029838a4e667350"
+  };
+  firebase.initializeApp(config);
+  database = firebase.database();
+  ref = database.ref();
+  ref.on('value', gotData, errData);
+  createCanvas(400, 400);
+}
+
+function draw(){
+  background(200);
+  var u = window[user];
+  rv += keys[37] ? -rs : keys[39] ? rs : 0;
+  vel += keys[38] ? speed : keys[40] ? -speed : 0;
+  rv*=0.9;
+  rot += rv;
+  vel *= 0.9;
+  //cd(u, {x: vel*Math.cos(rot)});
+  //cd(u, {x: vel*Math.sin(rot)});
+  //cd(u, {rot: u.rot});
+  
+  push();
+  fill(0, 100, 255, 100);
+  stroke(255, 0, 0, 100);
+  strokeWeight(20);
+  var lp = awr(u.x, u.y, u.rot, 10);
+  line(u.x-lp.x, u.y-lp.y, u.x+lp.x, u.y+lp.y);
+  pop();
+  
+  push();
+  strokeWeight(5);
+  point(u.x+15*Math.cos(u.rot-Math.PI/eyeDist), u.y+15*Math.sin(u.rot-Math.PI/eyeDist));
+  point(u.x+15*Math.cos(u.rot+Math.PI/eyeDist), u.y+15*Math.sin(u.rot+Math.PI/eyeDist));
+  pop();
+}
+
+function gotData(data){
+  var data = data.val();
+  for(i in data){
+    window[i] = data[i];
+    console.log(i+":");
+    console.log(window[i].x);
+  }
+}
+
+function errData(err){
+  console.log("Error!");
+  console.log(err);
+}
+
+function cd(n, v){//changedata(name, val)
+  ref.child(n).update(v);
+}
+
+function awr(rot, len){
+  return {x: len*Math.cos(rot), y: len*Math.sin(rot)}
+}
+
+document/addEventListener("keydown", function(){
+  keys[event.keyCode] = true;
+});
+
+document/addEventListener("keyup", function(){
+  keys[event.keyCode] = false;
+});
+</script>

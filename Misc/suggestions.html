@@ -1,0 +1,25 @@
+<p>Search</p>
+<input type="text" id="myText" value="man">
+<p>Suggestions:</p>
+<script>
+var temp=myText.value;
+while(true){
+  if(temp!=myText.value){
+    var allWords = [];
+    var url = "https://api.datamuse.com/sug?s=";
+    function getContent(url, word){
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.open("GET", url+word, false);
+      xmlhttp.send(null);
+      return xmlhttp.responseText;
+    }
+    var x = getContent(url, "ma");
+    x = x.split("\"");
+    for(i=1;i<((x.length-1)/6)+1;i++){
+      allWords.push(x[i*6-3]);
+    }
+    alert(allWords);
+  }
+}
+</script>
+

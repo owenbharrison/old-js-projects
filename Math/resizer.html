@@ -1,0 +1,74 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
+<script>
+let img;
+var size = 200;
+var makeBig = false;
+
+function setup() {
+  createCanvas(size*2, size*2);
+  var cat = "https://feedbagpetsupply.com/wp-content/uploads/Easter-Kittens-300x300.jpg";
+  var baw = "https://image.shutterstock.com/image-vector/black-white-american-flag-260nw-330390110.jpg";
+  img = loadImage(cat);
+}
+
+function mousePressed(){
+  background(0);
+  image(img, 0, 0, size, size);
+  loadPixels();
+  
+  updatePixels();
+  if(makeBig){
+    loadPixels();
+    var p = pixels;
+    updatePixels();
+    background(0);
+    loadPixels();
+    for(x=0;x<size;x++){
+      for(y=0;y<size;y++){
+        var i = gi(x, y, width);
+        var ni = gi(x*2, y*2, width);
+        pixels[ni+0] = p[i+0];
+        pixels[ni+1] = p[i+1];
+        pixels[ni+2] = p[i+2];
+        pixels[ni+3] = p[i+3];
+      }
+    }
+    updatePixels();
+    loadPixels();
+    for(y=0;y<size*2-1;y++){
+      for(x=0;x<size*2-1;x++){
+        if((x+y)%2==1){
+          var i = gi(x, y, width);
+          var r = i, g=i+1, b=i+2, a=i+3;
+          pixels[r] = (pixels[r-4]+pixels[r+4])/2;
+          pixels[g] = (pixels[g-4]+pixels[g+4])/2;
+          pixels[b] = (pixels[b-4]+pixels[b+4])/2;
+          pixels[a] = (pixels[a-4]+pixels[a+4])/2;
+        }
+      }
+    }
+    updatePixels();
+    loadPixels();
+    for(y=0;y<size*2-1;y++){
+      for(x=0;x<size*2-1;x++){
+        if(y%2==1){
+          var i = gi(x, y, width);
+          var top = gi(x, y-1, width);
+          var bottom = gi(x, y+1, width);
+          pixels[i+0] = (pixels[top+0]+pixels[bottom+0])/2;
+          pixels[i+1] = (pixels[top+1]+pixels[bottom+1])/2;
+          pixels[i+2] = (pixels[top+2]+pixels[bottom+2])/2;
+          pixels[i+3] = (pixels[top+3]+pixels[bottom+3])/2;
+        }
+      }
+    }
+  }
+  console.log(pixels.length);
+  updatePixels();
+}
+
+function gi(x, y, width){
+  return (x+y*width)*4;
+}
+</script>

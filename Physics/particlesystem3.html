@@ -1,0 +1,259 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<!--new fps counter library-->
+<script src="https://utils.cdnjs.repl.co/fpscount.js"></script>
+<script>
+console.clear();
+//physics constants
+var dampen = 2;
+var mousedampen = 2;
+var gravity = 1;
+var jointsize = 8;
+var f = 20;
+
+
+//change this to make it look like a real cloth
+var tile_view = true;
+
+//reference to all physics components
+var world = {particles:[], compounds:[], constraints:[], boundaries: []}; 
+
+
+
+function setup(){
+  createCanvas(400, 650);
+  world.boundaries.push(new Boundary(f, "wall", "min"));
+  world.boundaries.push(new Boundary(width-f, "wall", "max"));
+  world.boundaries.push(new Boundary(height-f, "ground", "min"));
+  var compound = new Compound(200, 200, 15, 16);
+  compound.sidelen = 5;
+  compound.initiate();
+  console.log(world);
+  frameRate(300);
+}
+
+function draw(){
+  background(127);
+  world.boundaries.forEach(b=>{
+    b.show();
+  });
+  world.compounds.forEach(c=>{
+    c.update();
+    c.show();
+  });
+}
+
+function Compound(x, y, xlen, ylen){
+  this.pos = {x: x, y: y};
+  this.xlen = xlen;
+  this.ylen = ylen;
+  this.bodies = [];
+  this.sidelen = 20;
+  this.constraints = [];
+  this.col = [255, 255, 255];
+  
+  this.initiate = function(){
+    var xl = this.xlen;
+    var yl = this.ylen;
+    for(y=0;y<yl;y++){
+      var y_ = y*this.sidelen;
+      for(x=-xl/2;x<xl/2;x++){
+        var x_ = x*this.sidelen*2+200;
+        var body = new Particle(x_, y_);
+        if((x==-xl/2||x==xl/2-1)&&y==0){
+          body.static = true;
+        }
+        body.parent = this;
+        this.bodies.push(body);
+      }
+    }
+    this.bodies[0].pos = {x: f, y: 0};
+    this.bodies[xl-1].pos = {x: width-f, y: 0};
+    var bl = this.bodies.length;
+    var cts = [];
+    for(i=0;i<bl;i++){
+      if(i+1<bl&&(i+1)%xl!=0){
+        var c = {b0: this.bodies[i], b1: this.bodies[i+1], len: this.sidelen};
+        this.constraints.push(c);
+        world.constraints.push(c);
+        var c = {b0: this.bodies[i+1], b1: this.bodies[i], len: this.sidelen};
+        this.constraints.push(c);
+        world.constraints.push(c);
+      }
+      if(i+xl<bl){
+        var c = {b0: this.bodies[i], b1: this.bodies[i+xl], len: this.sidelen};
+        this.constraints.push(c);
+        world.constraints.push(c);
+        var c = {b0: this.bodies[i+xl], b1: this.bodies[i], len: this.sidelen};
+        this.constraints.push(c);
+        world.constraints.push(c);
+      }
+    }
+    world.compounds.push(this);
+  }
+  
+  this.poses = function(){
+    var poses = [];
+    for(i=0;i<this.bodies.length;i++){
+      poses[i] = this.bodies[i].pos;
+    }
+    return poses;
+  }
+  
+  this.update = function(){
+    this.constraints.forEach(c=>{
+      spring(c.b0, c.b1, c.len);
+    });
+    
+    this.pos = avg(this.poses());
+  }
+  this.show = function(){
+    for(i=0;i<this.constraints.length;i+=2){
+      c = this.constraints[i];
+      if(!tile_view){
+        push();
+        stroke(51);
+        strokeWeight(1);
+        line(c.b0.pos.x, c.b0.pos.y, c.b1.pos.x, c.b1.pos.y);
+        push();
+      }
+    }
+    this.bodies.forEach(b=>{
+      b.show();
+      b.checkCollision();
+      b.mouseConstraint();
+    });
+    if(tile_view){
+      for(x=0;x<this.xlen-1;x++){
+        for(y=0;y<this.ylen-1;y++){
+          var b0=this.bodies[x+y*this.xlen],
+          b1=this.bodies[x+1+y*this.xlen],
+          b2=this.bodies[x+1+(y+1)*this.xlen],
+          b3=this.bodies[x+(y+1)*this.xlen];
+          push();
+          noStroke();
+          fill((veltocol(b0.vel)+veltocol(b1.vel)+veltocol(b2.vel)+veltocol(b3.vel))/4);
+          beginShape();
+          vertex(b0.pos.x,b0.pos.y);
+          vertex(b1.pos.x,b1.pos.y);
+          vertex(b2.pos.x,b2.pos.y);
+          vertex(b3.pos.x,b3.pos.y);
+          endShape(CLOSE);
+          pop();
+        }
+      }
+    }
+  }
+}
+
+function Particle(x, y){
+  this.pos = {x: x, y: y};
+  this.vel = {x: 0, y: 0};
+  this.acc = {x: 0, y: 0};
+  this.parent = null;
+  this.mda = 0;
+  this.mdl = 0;
+  this.static = false;
+  world.particles.push(this);
+  
+  this.addForce = function(x, y){
+    if(!this.static){
+      this.acc = {x: x, y: y};
+      this.vel.x += this.acc.x;
+      this.vel.y += this.acc.y;
+    }
+  }
+  this.checkCollision = function(){
+    world.boundaries.forEach(i=>{
+      if(i.type=="ground"){
+        if(this.pos.y>i.val-jointsize/2){
+          this.vel.y=0;
+          this.pos.y=i.val-jointsize/2;
+        }
+        else{
+          this.addForce(0,gravity);
+        }
+      }
+      if(i.type=="wall"){
+        if(i.valtype=="max"){
+          if(this.pos.x>i.val-jointsize/2){ 
+            this.vel.x=0;
+            this.pos.x=i.val-jointsize/2;
+          }
+        }
+        if(i.valtype=="min"){
+          if(this.pos.x<i.val+jointsize/2){
+            this.vel.x=0;
+            this.pos.x=i.val+jointsize/2;
+          }
+        }
+      }
+    });
+  }
+  
+  this.mouseConstraint = function(){
+    this.mda = distance(mouseX-this.pos.x, mouseY-this.pos.y);
+    if(!mouseIsPressed){this.mdl = this.mda;}
+    
+    if(mouseIsPressed&&this.mdl<jointsize){
+      keys[32]?this.static=true:0;
+      keys[16]?this.static=false:0;
+      var lp = awr({x: mouseX, y: mouseY}, magicangle(this.pos, {x: mouseX, y: mouseY}), 0);
+      this.addForce((lp.x-this.pos.x)/mousedampen, (lp.y-this.pos.y)/mousedampen);
+      push();
+      stroke(255);
+      line(mouseX, mouseY, this.pos.x, this.pos.y);
+      pop();
+    }
+  }
+  this.show = function(){
+    this.pos.x += this.vel.x;
+    this.pos.y += this.vel.y;
+    this.vel.x *= 0.93;
+    this.vel.y *= 0.93;
+    if(!tile_view){
+      push();
+      noStroke();
+      fill(veltocol(this.vel));
+      circle(this.pos.x, this.pos.y, jointsize);
+      pop();
+    }
+  }
+}
+
+
+function Boundary(val, type, valtype){
+  this.val = val;
+  this.type = type;
+  this.valtype = valtype;
+  this.show = function(){
+    if(this.type=="ground"){
+      line(0,this.val,width,this.val);
+    }
+    if(this.type=="wall"){
+      line(this.val,0,this.val,height);
+    }
+  }
+}
+
+function spring(p0, p1, len){
+  var dist = distance(p0.pos.x-p1.pos.x, p0.pos.y-p1.pos.y);
+  var xd0 = p0.pos.x-p1.pos.x;
+  var yd0 = p0.pos.y-p1.pos.y;
+  var newVec0 = makeVectorDist({x: xd0, y: yd0}, (dist-len)/2);
+  
+  p0.addForce(-newVec0.x/2, -newVec0.y/2);//apply normal
+  p1.addForce(newVec0.x/2, newVec0.y/2);//apply opposite
+}
+
+
+
+function makeVectorDist(vec, len){
+  var dist = distance(vec.x, vec.y);
+  var change = len/dist;
+  return {x: vec.x*change, y: vec.y*change};
+}
+
+function veltocol(v){
+  return map(distance(v.x, v.y),0,2.75,0,255);
+}
+</script>

@@ -1,0 +1,105 @@
+<!--Using Matter.js and p5.js-->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script src="https://matterjs.owenharrison1.repl.co/script.js"></script>
+<script>
+console.clear();
+var Engine = Matter.Engine, World = Matter.World, Bodies = Matter.Bodies;
+
+var engine, world, barrier;
+var items = [];
+var size = 10;
+var building = true;
+
+
+function setup(){
+  createCanvas(400, 400);
+  engine = Engine.create();
+  world = engine.world;
+  barrier = Bodies.rectangle(200, width, height, 100, { isStatic: true });
+  Engine.run(engine);
+  World.add(world, barrier);
+  if(building){
+    setBuilding();
+  }
+}
+
+function mousePressed(){
+  items.push(new Particle(mouseX, mouseY, size*2, size*2, "box"));
+}
+
+function draw(){
+  background(51);
+  //Engine.update(engine);
+  for(i=0;i<items.length;i++){
+    items[i].show();
+    if(items[i].isAbsent()&&items[i].type!="barrier"){
+      items[i].deleteObj();
+      items.splice(i, 1);
+      i--;
+    }
+  }
+}
+
+
+
+
+
+
+function Particle(x, y, w, h, type){
+  this.w = w;
+  this.h = h;
+  this.type = type;
+  
+  if(this.type == "box"){this.body = Bodies.rectangle(x, y, w, h);}
+  if(this.type == "circle"){this.body = Bodies.circle(x, y, w);}
+  if(this.type == "barrier"){this.body = Bodies.rectangle(x, y, w, h, {isStatic: true});}
+  
+  World.add(world, this.body);
+  
+  this.isAbsent = function(){
+    var pos = this.body.position;
+    return (pos.y>height+100);
+  }
+  
+  this.deleteObj = function(){
+    World.remove(world, this.body);
+  }
+  
+  this.show = function(){
+    var pos = this.body.position;
+    var angle = this.body.angle;
+    
+    push();
+    translate(pos.x, pos.y);
+    rotate(angle);
+    if(this.type == "circle"){
+      circle(0, 0, w*2);
+    }
+    if(this.type == "box"||this.type == "barrier"){
+      rectMode(CENTER);
+      rect(0, 0, this.w, this.h);
+    }
+    pop();
+  }
+}
+
+
+
+
+function setBuilding(){
+  items.push(new Particle(200, 200, size*2, size*2, "box"));
+  var y = 0;
+  var building = setInterval(function(){
+    for(i=0;i<10;i++){
+      var x = 200-size*4.5+i*size;
+      items.push(new Particle(x, y, size, size*2, "box"));
+    }
+    y++;
+    if(y>=5){
+      clearInterval(building);
+    }
+  }, 500);
+}
+</script>
+<a href="js.do/code/matter-js-constraints"></a>

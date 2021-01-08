@@ -1,0 +1,8 @@
+<button onclick="setCookie('red')">set cookie</button>
+<script>
+document.body.style.backgroundColor = document.cookie;
+function setCookie(val){
+  document.cookie = "value="+val;
+}
+
+</script>

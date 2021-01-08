@@ -1,0 +1,59 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var points = [],
+    gravity = 0.5,
+    airfriction = 0.995,
+    bounce = 0.9;
+
+function setup(){
+  createCanvas(400, 400);
+  points.push(new Point(20, 20, 12, 20));
+}
+
+
+function draw(){
+  background(170);
+  for(i=0;i<points.length;i++){
+    var p = points[i];
+    p.update();
+    p.show();
+  }
+}
+
+
+
+
+function Point(x, y, ox, oy){
+  this.pos = {x: x, y: y};
+  this.oldpos = {x: ox, y: oy};
+  
+  this.update = function(){
+    var vx = (this.pos.x-this.oldpos.x)*airfriction;
+    var vy = (this.pos.y-this.oldpos.y)*airfriction;
+    
+    this.oldpos.x = this.pos.x;
+    this.oldpos.y = this.pos.y;
+    this.pos.x += vx;
+    this.pos.y += vy+gravity;
+    
+    
+    if(this.pos.x>width){this.pos.x=width,this.oldpos.x=this.pos.x+vx*bounce;}
+    else if(this.pos.x<0){this.pos.x=0,this.oldpos.x=this.pos.x+vx*bounce;}
+    if(this.pos.y>height){this.pos.y=height,this.oldpos.y=this.pos.y+vy*bounce;}
+    else if(this.pos.y<0){this.pos.y=0,this.oldpos.y=this.pos.y+vy*bounce;}
+  }
+  
+  this.show = function(){
+    push();
+    fill(0);
+    noStroke();
+    circle(this.pos.x, this.pos.y, 5);
+    pop();
+  }
+}
+
+
+
+
+
+</script>

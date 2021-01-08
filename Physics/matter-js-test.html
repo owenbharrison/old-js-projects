@@ -1,0 +1,125 @@
+<!--Using Matter.js and p5.js-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.min.js"></script>
+<script>
+console.clear();
+var Engine = Matter.Engine,
+  World = Matter.World,
+  Bodies = Matter.Bodies,
+  Body = Matter.Body;
+
+var engine, world, barrier, canvas;
+var items = [];
+var keys = [];
+var size = 20;
+var building = true;
+var speed = 0;
+
+
+function setup(){
+  canvas = createCanvas(400, 400);
+  engine = Engine.create();
+  world = engine.world;
+  Engine.run(engine);
+  engine.enableSleeping = true;
+  barrier = Bodies.rectangle(200, width, height*10, 100, {isStatic: true});
+  World.add(world, barrier);
+  items.push(new Particle(200, 200, size, size, "box", [0, 255, 255]));
+}
+
+function mousePressed(){
+  items.push(new Particle(mouseX, mouseY, size, size, "box", 255));
+}
+
+
+function draw(){
+  background(100);
+  for(i=0;i<items.length;i++){
+    items[i].show();
+    if(items[i].isAbsent()&&items[i].type!="barrier"){
+      items[i].deleteObj();
+      items.splice(i, 1);
+      i--;
+    }
+    if(items[i].body.isSleeping){
+      items[i].col = 150;
+    }
+    if(!items[i].body.isSleeping){
+      items[i].col = 255;
+    }
+  }
+  var force = 1/10000;
+  if(keys[87]){items[0].move("v", -force*size/2);}
+  if(keys[65]){items[0].move("h", -force*size/4);}
+  if(keys[68]){items[0].move("h", force*size/4);}
+}
+
+
+
+
+
+function Particle(x, y, w, h, type, col){
+  this.w = w;
+  this.h = h;
+  this.col = col;
+  this.type = type;
+  if(this.type == "box"){this.body = Bodies.rectangle(x, y, w, h);}
+  if(this.type == "circle"){this.body = Bodies.circle(x, y, w);}
+  if(this.type == "barrier"){this.body = Bodies.rectangle(x, y, w, h, {isStatic: true});}
+  
+  World.add(world, this.body);
+  
+  this.isAbsent = function(){
+    var pos = this.body.position;
+    return (pos.y>height+100);
+  }
+  this.deleteObj = function(){
+    World.remove(world, this.body);
+  }
+  
+  this.move = function(ori, force){
+    var pos = this.body.position;
+    if(ori == "h"){
+      Body.applyForce(this.body, pos, {x: force, y: 0});
+    }
+    if(ori == "v"){
+      Body.applyForce(this.body, pos, {x: 0, y: force});
+    }
+  }
+  
+  
+  this.show = function(){
+    var pos = this.body.position;
+    var angle = this.body.angle;
+    push();
+    translate(pos.x, pos.y);
+    rotate(angle);
+    noStroke();
+    fill(this.col);
+    if(this.type == "circle"){
+      circle(0, 0, w*2);
+    }
+    if(this.type == "box"||this.type == "barrier"){
+      rectMode(CENTER);
+      rect(0, 0, this.w, this.h);
+    }
+    pop();
+  }
+}
+document.addEventListener("keydown", function(){
+  keys[event.keyCode] = true;
+});
+document.addEventListener("keyup", function(){
+  keys[event.keyCode] = false;
+});
+
+var previous = 0;
+var current = 0;
+var pos = {x: 0, y: 0}
+setInterval(function(){
+  previous = pos.y;
+  pos = items[0].body.position;
+  speed = current-previous;
+  current = pos.y;
+}, 20);
+</script>

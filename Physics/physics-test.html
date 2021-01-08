@@ -1,0 +1,131 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/poly-decomp@0.3.0/build/decomp.min.js"></script>
+<script>
+
+console.clear();
+var Engine = Matter.Engine,
+  World = Matter.World,
+  Bodies = Matter.Bodies,
+  Body = Matter.Body,
+  Vertices = Matter.Vertices;
+
+var engine, world, barrier, canvas;
+var mouse = {}
+var colors = [[170, 170, 170], [170, 170, 170], [170, 170, 170], [170, 170, 170]];
+var size = 20;
+var bsize = size*2;
+var rot = 0;
+var wt = 0;//wiggle threshold
+var rs =  Math.PI/48;
+var shapes = [];
+var keys = [];
+
+
+function setup(){
+  canvas = createCanvas(400, 400);
+  engine = Engine.create();
+  world = engine.world;
+  Engine.run(engine);
+  new Barrier(width/2, height, width, bsize);//bottom
+  new Barrier(0, width/2, bsize, height);//left
+  new Barrier(width, height/2, bsize, height);//right
+  new Barrier(width/2, 0, width, bsize);//top
+  setKeys();
+  shapes.push([0, 0, size, 0, size, 4*size, 0, 4*size, 0, 1].join(" "));
+  shapes.push([0, 0, size, 0, size, size, 2*size, size, 2*size, 2*size, size, 2*size, size, 3*size, 0, 3*size, 0, 1].join(" "));
+  shapes.push([0, 0, 2*size, 0, 2*size, 2*size, 0, 2*size, 0, 1].join(" "));
+  shapes.push([0, 0, size, 0, size, 2*size, 2*size, 2*size, 2*size, 3*size, 0, 3*size, 0, 1].join(" "));
+  shapes.push([0, 0, size, 0, size, 3*size, -size, 3*size, -size, 2*size, 0, 2*size, 0, 1].join(" "));
+  shapes.push([0, 0, size, 0, size, size, 2*size, size, 2*size, 3*size, size, 3*size, size, 2*size, 0, 2*size, 0, 1].join(" "));
+  shapes.push([0, 0, size, 0, size, 2*size, 0, 2*size, 0, 3*size, -size, 3*size, -size, size, 0, size, 0, 1].join(" "));
+  var sn = 20;//number of shapes to add
+  for(i=0;i<sn;i++){
+    new Shape(random(40, width-40), random(40, height-40), random(shapes), randCol());
+  }
+}
+
+function draw(){
+  var c = document.getElementById(canvas.id());
+  background(200);
+  showAll();
+  rot += keys[37] ? rs : keys[39] ? -rs : 0;
+  var grav = {
+    x: Math.cos(rot),
+    y: Math.sin(rot)
+  }
+  engine.world.gravity.x = grav.x;
+  engine.world.gravity.y = grav.y;
+  c.style.transform = "rotate("+(-rot+Math.PI/2)+"rad)";
+}
+
+function Shape(x, y, path, col){
+  var arrow = Vertices.fromPath(path);
+  colors.push(col);
+  this.body = Bodies.fromVertices(x, y, arrow, [{sleepThreshold: 50}], [flagInternal=false], [removeCollinear=0.01], [minimumArea=10]);
+  World.add(world, this.body);
+}
+
+function Circle(x, y, radius){
+  this.radius = radius;
+  this.body = Bodies.circle(x, y, this.radius);
+  World.add(world, this.body);
+}
+
+function Barrier(x, y, w, h){
+  this.body = Bodies.rectangle(x, y, w, h, {isStatic: true});
+  World.add(world, this.body);
+}
+
+function randCol(){
+  var set = 20;
+  return [random(set)*255/set, random(set)*255/set, random(set)*255/set];
+}
+
+function showAll(){
+  var bodies = world.bodies;
+  for(i=0;i<bodies.length;i++){
+    var body = bodies[i];
+    push();
+    noStroke();
+    fill(colors[i][0], colors[i][1], colors[i][2], 150);
+    beginShape();
+    if(body.parts.length>1){
+      for(j=1;j<body.parts.length;j++){
+        var part = body.parts[j];
+        for(k=0;k<part.vertices.length;k++){
+          var vert = part.vertices[k];
+          vertex(vert.x*wiggle(wt), vert.y*wiggle(wt));
+        }
+      }
+    }
+    else{
+      for(j=0;j<body.vertices.length;j++){
+        var vert = body.vertices[j];
+        vertex(vert.x*wiggle(wt), vert.y*wiggle(wt));
+      }
+    }
+    endShape(CLOSE);
+    pop();
+  }
+}
+
+function setKeys(){
+  document.addEventListener("keydown", function(){
+    keys[event.keyCode] = true;
+  });
+  
+  document.addEventListener("keyup", function(){
+    keys[event.keyCode] = false;
+  });
+}
+
+document.onmousemove = function(event){
+  mouse.x = event.clientX;
+  mouse.y = event.clientY;
+}
+
+function wiggle(x){
+  return random(1-x, 1+x);
+}
+</script>

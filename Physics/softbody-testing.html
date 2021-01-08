@@ -1,0 +1,80 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.min.js"></script>
+<script>
+console.clear();
+var Engine = Matter.Engine,
+  World = Matter.World,
+  Bodies = Matter.Bodies,
+  Body = Matter.Body,
+  Composites = Matter.Composites,
+  Mouse = Matter.Mouse,
+  MouseConstraint = Matter.MouseConstraint;
+
+var engine, world, barrier, canvas, s1, s2, s3;
+var soft = [];
+var size = 20;
+
+
+function setup(){
+  canvas = createCanvas(400, 400);
+  engine = Engine.create();
+  world = engine.world;
+  Engine.run(engine);
+  barrier = Bodies.rectangle(200, width, height*2, 100, {isStatic: true});
+  World.add(world, barrier);
+  addMC();
+  soft.push(new SoftBody(50, 300, 4, 4, 6));
+  soft.push(new SoftBody(150, 300, 4, 4, 6));
+  soft.push(new SoftBody(250, 300, 4, 4, 6));
+  soft.push(new SoftBody(350, 300, 4, 4, 6));
+  console.log(world.composites);
+}
+
+function draw(){
+  background(240);
+  push();
+  fill(200);
+  rectMode(CENTER);
+  rect(200, height, 2*width, 100);
+  pop();
+  var alp = 170;
+  soft[0].show(0, [255, 0, 0, alp]);
+  soft[1].show(1, [0, 255, 0, alp]);
+  soft[2].show(2, [0, 0, 250, alp]);
+  soft[3].show(3, [255, 255, 0, alp]);
+}
+
+
+function SoftBody(x, y, columns, rows, radius){
+  this.columns = columns;
+  this.rows = rows;
+  this.radius = radius;
+  this.body = Composites.softBody(x, y, this.columns, this.rows, 0, 0, true, this.radius, {}, {stiffness: 0.1});
+  World.add(world, this.body);
+  var comps = world.composites;
+  this.show = function(index, col){
+    var r = this.radius;
+    var b = comps[index].bodies;
+    for(i=0;i<b.length;i++){
+      var pos = b[i].position;
+      push();
+      fill(col);
+      strokeWeight(2);
+      translate(pos.x, pos.y);
+      circle(0, 0, r*2);
+      pop();
+    }
+  }
+}
+
+function addMC(){
+  var mConstraint;
+  var canvasmouse = Mouse.create(canvas.elt);
+  pixelDensity(1);
+  var options = {
+    mouse: canvasmouse
+  }
+  mConstraint = MouseConstraint.create(engine, options);
+  World.add(world, mConstraint);
+}
+</script>

@@ -1,0 +1,219 @@
+
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.10.2/addons/p5.sound.min.js"></script>
+<script>
+console.clear();
+var dampen = 2.5;
+var mousedampen = 5;
+var gravity = 1;
+var jointsize = 8;
+var f = 20;
+var mn = 3;
+var mx = 4;
+var m = {};
+var world = {particles:[], compounds:[], constraints:[], boundaries: []}; 
+
+
+
+
+function setup(){
+  createCanvas(window.innerWidth-15, window.innerHeight-50);
+  world.boundaries.push(new Boundary(f, "wall", "min"));
+  world.boundaries.push(new Boundary(width-f, "wall", "max"));
+  world.boundaries.push(new Boundary(height-f, "ground", "min"));
+  m.x = width/2;
+  m.y = height/2;
+}
+
+function draw(){
+  background(170);
+  
+  world.boundaries.forEach(b=>{
+    b.show();
+  });
+  world.compounds.forEach(c=>{
+    c.update();
+    c.show();
+  });
+  world.compounds.forEach(c=>{
+    for(k=mn;k<mx+1;k++){
+      if((keys[k+48]&&c.sides==k)||keys[32]){
+        c.bodies[0].mdl = 0;
+      }
+    }
+  });
+  if(keys[16]){//hold on to one particle for each compound
+    world.compounds.forEach(c=>{
+      push();
+      noStroke();
+      circle(c.pos.x, c.pos.y, jointsize);
+      pop();
+    });
+  }
+}
+
+function mousePressed(e){
+  if(e.button==1){
+    var compound = new Compound(mouseX, mouseY, round(random(mn, mx)));
+    compound.sidelen = random(25, 45);
+    var r = random(0, 255),g = random(0, 255),b = random(0, 255);
+    compound.col = [r, g, b];
+    compound.initiate();
+  }
+}
+
+function Compound(x, y, sides){
+  this.pos = {x: x, y: y};
+  this.sides = sides;
+  this.bodies = [];
+  this.sidelen = 10;
+  this.constraints = [];
+  this.col = [255, 255, 255];
+  
+  this.initiate = function(){
+    for(i=0;i<sides;i++){//radial particle setup
+      var lp = awr(this.pos, i*(Math.PI*2/sides)+0.1, this.sidelen);
+      this.bodies[i] = new Particle(lp.x, lp.y);
+      this.bodies[i].parent = this;
+    }
+    for(var b of this.bodies){
+      for(var o of this.bodies){
+        if(b!=o){
+          var c = {b0:b, b1:o, l: this.sidelen};
+          this.constraints.push(c);
+          world.constraints.push(c);
+        }
+      }
+    }
+    world.compounds.push(this);
+  }
+  
+  this.poses = function(){
+    var poses = [];
+    for(i=0;i<this.bodies.length;i++){
+      poses[i] = this.bodies[i].pos;
+    }
+    return poses;
+  }
+  
+  this.update = function(){
+    this.constraints.forEach(c=>{
+      spring(c.b0, c.b1, c.l);
+    });
+    this.pos = avg(this.poses());
+  }
+  this.show = function(){
+    this.bodies.forEach(function(b){
+      b.show();
+      b.checkCollision();
+      b.mouseConstraint();
+    });
+    var poses = this.poses();
+    var v = avg(poses);
+    poses = polarsort(v, poses);
+    
+    push();
+    fill(this.col[0], this.col[1], this.col[2], 170);
+    beginShape();
+    poses.forEach(function(b){
+      vertex(b.x, b.y);
+    });
+    endShape(CLOSE);
+    pop();
+  }
+}
+
+function Particle(x, y){
+  this.pos = {x: x, y: y};
+  this.vel = {x: 0, y: 0};
+  this.acc = {x: 0, y: 0};
+  this.parent = null;
+  this.mda = 0;
+  this.mdl = 0;
+  world.particles.push(this);
+  
+  this.addForce = function(x, y){
+    this.acc = {x: x, y: y};
+    this.vel.x += this.acc.x;
+    this.vel.y += this.acc.y;
+  }
+  this.checkCollision=function(){
+    world.boundaries.forEach(i=>{
+      "ground"==i.type&&(this.pos.y>i.val-jointsize/2?(this.vel.y=0,this.pos.y=i.val-jointsize/2):this.addForce(0,gravity)),
+      "wall"==i.type&&("max"==i.valtype&&this.pos.x>i.val-jointsize/2&&(this.vel.x=0,this.pos.x=i.val-jointsize/2),"min"==i.valtype&&this.pos.x<i.val+jointsize/2&&(this.vel.x=0,this.pos.x=i.val+jointsize/2))
+    });
+    
+    world.compounds.forEach(c=>{
+      if(c!=this.parent){
+        c.constraints.forEach(s=>{
+          if(pointlineintersect(s.b0.pos, s.b1.pos, this.pos, jointsize/2)){
+            if(true){
+              this.pos.x-=this.vel.x;
+              this.pos.y-=this.vel.y;
+              this.vel.y /= 10;
+              this.vel.x /= 10;
+            }
+            if(true){
+              s.b0.pos.x-=s.b0.vel.x;
+              s.b0.pos.y-=s.b0.vel.y;
+              s.b0.vel.x /= 10;
+              s.b0.vel.y /= 10;
+              
+              s.b1.pos.x-=s.b1.vel.x;
+              s.b1.pos.y-=s.b1.vel.y;
+              s.b1.vel.x /= 10;
+              s.b1.vel.y /= 10;
+            }
+          }
+        });
+      }
+    });
+  }
+  
+  this.mouseConstraint = function(){
+    this.mda = distance(mouseX-this.pos.x, mouseY-this.pos.y);
+    if(!mouseIsPressed){this.mdl = this.mda;}
+    
+    if(mouseIsPressed&&this.mdl<jointsize/2){
+      var lp = awr({x: mouseX, y: mouseY}, magicangle(this.pos, {x: mouseX, y: mouseY}), 0);
+      this.addForce((lp.x-this.pos.x)/mousedampen, (lp.y-this.pos.y)/mousedampen);
+      push();
+      stroke(255);
+      line(mouseX, mouseY, this.pos.x, this.pos.y);
+      pop();
+    }
+  }
+  this.show = function(){
+    this.pos.x += this.vel.x;
+    this.pos.y += this.vel.y;
+    this.vel.x *= 0.93;
+    this.vel.y *= 0.93;
+    push();
+    noStroke();
+    fill(0);
+    circle(this.pos.x, this.pos.y, jointsize);
+    pop();
+  }
+}
+
+
+function Boundary(val, type, valtype){
+  this.val = val;
+  this.type = type;
+  this.valtype = valtype;
+  this.show = function(){
+    if(this.type=="ground"){
+      line(0,this.val,width,this.val);
+    }
+    if(this.type=="wall"){
+      line(this.val,0,this.val,height)
+    }
+  }
+}
+
+function spring(p0, p1, len){
+  var lp = awr(p1.pos, magicangle(p0.pos, p1.pos), len);
+  p0.addForce((lp.x-p0.pos.x)/dampen, (lp.y-p0.pos.y)/dampen);
+  p1.addForce(-(lp.x-p1.pos.x)/dampen, -(lp.y-p1.pos.y)/dampen);
+}
+</script>

@@ -1,0 +1,50 @@
+<!--Cloud Variable Info Library-->
+<script src="https://cloudvar.owenharrison1.repl.co/script.js"></script>
+<!--Other Libraries-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+var database;
+var ref;
+var keys = [];
+var redx = new Cloudvar("redx", 200);
+var redy = new Cloudvar("redy", 100);
+var blux = new Cloudvar("blux", 200);
+var bluy = new Cloudvar("bluy", 300);
+var speed = 10;
+
+function setup(){
+  createCanvas(400, 400);
+}
+
+function draw(){
+  background(170);
+  //playerRed
+  if(keys[87]){redy.put(redy.take()-speed);}
+  if(keys[83]){redy.put(redy.take()+speed);}
+  if(keys[65]){redx.put(redx.take()-speed);}
+  if(keys[68]){redx.put(redx.take()+speed);}
+  //playerBlu
+  if(keys[38]){bluy.put(bluy.take()-speed);}
+  if(keys[40]){bluy.put(bluy.take()+speed);}
+  if(keys[37]){blux.put(blux.take()-speed);}
+  if(keys[39]){blux.put(blux.take()+speed);}
+  push();
+  fill(255, 100, 20);
+  noStroke();
+  circle(redx.take(), redy.take(), 15);
+  pop();
+  push();
+  fill(0, 150, 255);
+  noStroke();
+  circle(blux.take(), bluy.take(), 15);
+  pop();
+}
+
+
+document.addEventListener("keydown", function(){
+  keys[event.keyCode] = true;
+});
+document.addEventListener("keyup", function(){
+  keys[event.keyCode] = false;
+});
+</script>

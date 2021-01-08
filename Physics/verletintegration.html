@@ -1,0 +1,121 @@
+<!--Use mouse to drag square, press space to lock particle-->
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var points=[],sticks=[],gravity=0.5,airfriction=0.999,bounce=0.95,size=5;
+
+function setup(){
+  createCanvas(400, 400);
+  var s=35;
+  points.push(new Point(175,175,175+random(-s,s),175+random(-s,s)));
+  points.push(new Point(225,175,225,175));
+  points.push(new Point(225,225,225,225));
+  points.push(new Point(175,225,175,225));
+  //points.push(new Point(200,200,200,200));
+  //points[4].static=true;
+  sticks.push(new Stick(points[0],points[1],50));
+  sticks.push(new Stick(points[1],points[2],50));
+  sticks.push(new Stick(points[2],points[3],50));
+  sticks.push(new Stick(points[3],points[0],50));
+  sticks.push(new Stick(points[0],points[2],distance(points[0].pos.x-points[2].pos.x, points[0].pos.y-points[2].pos.y)));
+  sticks.push(new Stick(points[1],points[3],distance(points[1].pos.x-points[3].pos.x, points[1].pos.y-points[3].pos.y)));
+  //sticks.push(new Stick(points[2],points[4],100));
+}
+
+function draw(){
+  background(170);
+  points.forEach(p=>p.update());
+  for(i=0;i<8;i++){sticks.forEach(s=>s.update()),points.forEach(p=>p.constrain());}
+  push();
+  noStroke();
+  fill(255,0,0);
+  beginShape();
+  vertex(points[0].pos.x, points[0].pos.y);
+  vertex(points[1].pos.x, points[1].pos.y);
+  vertex(points[2].pos.x, points[2].pos.y);
+  vertex(points[3].pos.x, points[3].pos.y);
+  endShape();
+  pop();
+  sticks.forEach(s=>s.show());
+  points.forEach(p=>p.show());
+}
+
+
+function Point(x, y, ox, oy){
+  this.pos = {x: x, y: y};
+  this.oldpos = {x: ox, y: oy};
+  this.static = false;
+  this.mda = Infinity;
+  this.mdl = Infinity;
+  
+  this.update = function(){
+    var vx=(this.pos.x-this.oldpos.x)*airfriction;
+    var vy=(this.pos.y-this.oldpos.y)*airfriction;
+    if(!this.static){
+      this.oldpos.x=this.pos.x,this.oldpos.y=this.pos.y,this.pos.x+=vx,this.pos.y+=vy+gravity;
+    }
+    this.mouseConstraint();
+  }
+  this.constrain = function(){
+    var vx=(this.pos.x-this.oldpos.x)*airfriction;
+    var vy=(this.pos.y-this.oldpos.y)*airfriction;
+    if(this.pos.x>width){this.pos.x=width,this.oldpos.x=this.pos.x+vx*bounce;}
+    else if(this.pos.x<0){this.pos.x=0,this.oldpos.x=this.pos.x+vx*bounce;}
+    if(this.pos.y>height){this.pos.y=height,this.oldpos.y=this.pos.y+vy*bounce;}
+    else if(this.pos.y<0){this.pos.y=0,this.oldpos.y=this.pos.y+vy*bounce;}
+  }
+  this.mouseConstraint = function(){
+    this.mda = distance(mouseX-this.pos.x, mouseY-this.pos.y);
+    if(!mouseIsPressed){this.mdl = this.mda;}
+    if(mouseIsPressed&&this.mdl<size*2){
+      if(!this.static){
+        var dx=this.pos.x-mouseX,dy=this.pos.y-mouseY,dist=distance(dx, dy),diff=0-dist,percent=diff/dist/2,ox=dx*percent,oy=dy*percent;
+        this.pos.x += ox,
+        this.pos.y += oy;
+      }
+      push();
+      stroke(255);
+      line(this.pos.x, this.pos.y, mouseX, mouseY);
+      pop();
+      keys[32]?this.static=true:0;
+      keys[16]?this.static=false:0;
+    }
+  }
+  this.show = function(){
+    push();
+    fill(0);
+    noStroke();
+    circle(this.pos.x, this.pos.y, size);
+    pop();
+  }
+}
+
+function Stick(b0, b1, len){
+  this.b0 = b0;
+  this.b1 = b1;
+  this.len = len;
+  this.update = function(){
+    var dx = this.b1.pos.x-this.b0.pos.x,
+        dy = this.b1.pos.y-this.b0.pos.y,
+        dist = distance(dx, dy),
+        diff = this.len-dist,
+        percent = diff/dist/2,
+        ox = dx*percent,
+        oy = dy*percent;
+    if(!b0.static){
+      this.b0.pos.x -= ox,
+      this.b0.pos.y -= oy;
+    }
+    if(!b1.static){
+      this.b1.pos.x += ox,
+      this.b1.pos.y += oy;
+    }
+  }
+  
+  this.show = function(){
+    push();
+    stroke(0);
+    line(this.b0.pos.x, this.b0.pos.y, this.b1.pos.x, this.b1.pos.y);
+    pop();
+  }
+}
+</script>

@@ -1,0 +1,75 @@
+<p id="info"></p>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+var spin = 25;
+var totalX = 462;
+var totalY = 150;
+var info = document.getElementById("info");
+
+function setup(){
+  createCanvas(400, 400, WEBGL);
+}
+
+function draw(){
+  var dx = mouseX-width/2;
+  var dy = mouseY-height/2;
+  var aw = 0.75;
+  var ah = 250;
+  background(200);
+  
+  
+  //axises
+  push();noStroke();fill(255, 0, 0);rotateZ(Math.PI/2);cylinder(aw, ah);pop();push();noStroke();fill(0, 0, 255);rotateY(Math.PI/2);cylinder(aw, ah);pop();push();noStroke();fill(0, 255, 0);rotateX(Math.PI/2);cylinder(aw, ah);pop();
+  
+  //box
+  push();
+  normalMaterial();
+   //pointLight(255, 255, 255, dx, dy, 0);
+  noStroke();
+  //ambientMaterial(255, 255, 255);
+  translate(75, -25, -75);
+  box(50);//any shape here
+  pop();
+  
+  //camera positioning 
+  push();
+  fill(0, 0, 255);
+  beginShape(TRIANGLE_STRIP);
+  vertex(-20, 20, 40);
+  vertex(-20, -20, 40);
+  vertex(20, -20, 40);
+  vertex(20, 20, 40);
+  vertex(-20, 40, 20);
+  vertex(-40, 20, 20);
+  vertex(-40, -20, 20);
+  vertex(-20, -40, 20);
+  vertex(20, -40, 20);
+  vertex(40, -20, 20);
+  vertex(40, 20, 20);
+  vertex(20, 40, 20);
+  vertex(-20, 40, -20);
+  vertex(-40, 20, -20);
+  vertex(-40, -20, -20);
+  vertex(-20, -40, -20);
+  vertex(20, -40, -20);
+  vertex(40, -20, -20);
+  vertex(40, 20, -20);
+  vertex(20, 40, -20);
+  vertex(-20, 20, -40);
+  vertex(-20, -20, -40);
+  vertex(20, -20, -40);
+  vertex(20, 20, -40);
+  endShape();
+  pop();
+  
+  camera(spin*Math.cos(-totalX/100)*5, -spin*Math.cos(totalY/100)*10, (5*spin)*Math.sin(-totalX/100), 0, 0, 0, 0, 1, 0);
+  
+  totalX += mouseIsPressed ? pmouseX-mouseX : 0;
+  totalY += mouseIsPressed ? pmouseY-mouseY : 0;
+  info.innerHTML = [totalX, totalY, spin].join(" | ");
+}
+function mouseWheel(event){
+  spin += event.delta/50;
+  
+}
+</script>

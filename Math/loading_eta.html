@@ -1,0 +1,40 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+let eta;
+
+var val = 0;
+
+var percent = 0;
+var prevpercent = 0;
+var percentchanged = 0;
+
+function setup(){
+  createCanvas(400, 400);
+}
+
+function draw(){
+  val += random(0, 0.75);
+  fill(0, 255, 0);
+  noStroke();
+  rect(0, height/2-10, val, 20);
+  noFill();
+  stroke(0);
+  rect(0, height/2-10, width, 20);
+  if(val>width){
+    noLoop();
+    clearInterval(eta);
+  }
+}
+
+eta = setInterval(()=>{
+  background(170);
+  percent = val/width*100;
+  percentchanged = percent-prevpercent;
+  textAlign(CENTER, CENTER);
+  text(percent.toFixed(1)+"%", 200, 220);
+  var etl = (100-percent)/percentchanged/2;
+  text("About "+etl.toFixed(1)+" seconds left", 200, 175);
+  
+  prevpercent = percent;
+}, 500);
+</script>

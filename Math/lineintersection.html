@@ -1,0 +1,74 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+var p1 = {x: 50, y: 300};
+var p2 = {x: 300, y: 100};
+var p3 = {x: 100, y: 50};
+var p4 = {x: 250, y: 350};
+
+var d1;
+var d2;
+var d3;
+var d4;
+
+var size = 10;
+
+function setup(){
+  createCanvas(400, 400);
+}
+
+function draw(){
+  background(150);
+   
+  line(p1.x, p1.y, p2.x, p2.y);
+  line(p3.x, p3.y, p4.x, p4.y);
+  
+  points();
+  
+  push();
+  var point = crossing(p1, p2, p3, p4);
+  fill(255);
+  circle(point.x, point.y, size);
+  pop();
+}
+
+function crossing(p1, p2, p3, p4){
+  //slopes
+  var s1 = (p1.y-p2.y)/(p1.x-p2.x);
+  var s2 = (p3.y-p4.y)/(p3.x-p4.x);
+  //intercepts
+  var y1 = p1.y-s1*p1.x;
+  var y2 = p3.y-s2*p3.x;
+  var xcross = (y1-y2)/(s2-s1);
+  var ycross = xcross*s1+y1;
+  var point = {x: xcross, y: ycross};
+  if(s1!=s2){
+    return point;
+  }
+  else{
+    return false;
+  }
+}
+
+function points(){
+  push();fill(255, 0, 0);  circle(p1.x, p1.y, size);pop();
+  push();fill(0, 255, 0);circle(p2.x, p2.y, size);pop();
+  push();fill(0, 0, 255);circle(p3.x, p3.y, size);pop();
+  push();fill(255, 255, 0);circle(p4.x, p4.y, size);pop();
+  
+  if(!mouseIsPressed){
+    d1 = dist(p1.x, p1.y, mouseX, mouseY);
+    d2 = dist(p2.x, p2.y, mouseX, mouseY);
+    d3 = dist(p3.x, p3.y, mouseX, mouseY);
+    d4 = dist(p4.x, p4.y, mouseX, mouseY);
+  }
+  
+  p1.x += mouseIsPressed&&d1<10 ? -pmouseX + mouseX : 0;
+  p1.y += mouseIsPressed&&d1<10 ? -pmouseY + mouseY : 0;
+  p2.x += mouseIsPressed&&d2<10 ? -pmouseX + mouseX : 0;
+  p2.y += mouseIsPressed&&d2<10 ? -pmouseY + mouseY : 0;
+  p3.x += mouseIsPressed&&d3<10 ? -pmouseX + mouseX : 0;
+  p3.y += mouseIsPressed&&d3<10 ? -pmouseY + mouseY : 0;
+  p4.x += mouseIsPressed&&d4<10 ? -pmouseX + mouseX : 0;
+  p4.y += mouseIsPressed&&d4<10 ? -pmouseY + mouseY : 0;
+}
+</script>

@@ -1,0 +1,66 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+function setup(){
+  createCanvas(400, 400);
+  //med x and med y
+  var mx = width/2, my = height/2;
+  background(170);
+  //sides Array
+  var s = prompt("What three side lengths? format: x y z");
+  s = s.split(" ");
+  pa(s);
+  //angles Array
+  var a = [];
+  if(s.length==3){
+    a.push(fA(s[0], s[1], s[2]));
+    a.push(sA(s[0], s[1], s[2]));
+    a.push(180-(a[0]+a[1]));
+  }
+  beginShape();
+  var scl = 20;
+  //points Array
+  var p = [{x: mx, y: my}, {x: mx+s[0]*scl, y: my}, {x:s[1]*scl*cos(a[2]*(PI/180)+PI)+(mx+s[0]*scl) , y: s[1]*scl*sin(a[2]*(PI/180)+PI)+my}];
+  //average x
+  var ax = (p[0].x+p[1].x+p[2].x)/3;
+  //average y
+  var ay = (p[0].y+p[1].y+p[2].y)/3;
+  translate(mx-ax, my-ay);
+  vertex(p[0].x, p[0].y);
+  vertex(p[1].x, p[1].y);
+  vertex(p[2].x, p[2].y);
+  endShape(CLOSE);
+  textAlign(CENTER, CENTER);
+  rectMode(CENTER);
+  for(i in p){
+    var txt = a[i].toFixed(2);
+    push();
+    noStroke();
+    fill(170);
+    rect(p[i].x, p[i].y, textWidth(txt)+2, 15);
+    pop();
+    push();
+    stroke(0);
+    text(txt, p[i].x, p[i].y);
+    pop();
+  }
+}
+
+//parse Array
+function pa(arr){
+  for(elm in arr){
+    arr[elm] = parseInt(arr[elm], 10);
+  }
+}
+//firstAngle
+function fA(a, b, c){
+  return acos((squ(b)+squ(c)-squ(a))/(2*b*c))*(180/Math.PI);
+}
+//secondAngle
+function sA(a, b, c){
+  return acos((squ(c)+squ(a)-squ(b))/(2*c*a))*(180/Math.PI);
+}
+//square
+function squ(n){
+  return pow(n, 2);
+}
+</script>

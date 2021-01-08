@@ -1,0 +1,155 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var rs = Math.PI/60;
+
+var con = {};
+var mainbeam, strut, crank;
+var joints = [];
+
+function setup(){
+  createCanvas(400, 400);
+  
+  mainbeam = new Line({x: 250, y: 180}, Math.PI, 38),
+  con.b = new Line(mainbeam.awr(), -Math.PI/2, 41),
+  con.c = new Line(mainbeam.awr(), Math.PI/2, 39),
+  con.d = new Line(mainbeam.awr(), Math.PI, 40, true),
+  con.e = new Line(con.b.awr(), 0, 56),
+  con.f = new Line(con.d.awr(), con.c.rot, 39, true),
+  con.g = new Line(con.c.awr(), 0, 36),
+  con.h = new Line(con.g.awr(), Math.PI*2/3, 65),
+  con.i = new Line(con.c.awr(), Math.PI*2/3, 49, true),
+  strut = new Line({x: 250, y: 180}, -Math.PI/2, 7.8),
+  crank = new Line(strut.awr(), Math.PI*2/3, 15, true),
+  con.j = new Line(crank.awr(), -Math.PI/2, 50),
+  con.k = new Line(crank.awr(), Math.PI*2/3, 61);
+  
+  
+  //JOINT(type, target, self, options)
+  joints.push(new Joint("parallel", con.c, con.f));
+  joints.push(new Joint("swivel", crank, con.j));
+  joints.push(new Joint("swivel", crank, con.k));
+  joints.push(new Joint("swivel", mainbeam, con.b));
+  joints.push(new Joint("swivel", mainbeam, con.c));
+  joints.push(new Joint("swivel", mainbeam, con.d));
+  joints.push(new Joint("swivel", con.b, con.e));
+  joints.push(new Joint("swivel", con.d, con.f));
+  joints.push(new Joint("swivel", con.c, con.g));
+  joints.push(new Joint("swivel", con.g, con.h));
+  joints.push(new Joint("swivel", con.c, con.i));
+  joints.push(new Joint("pointto", con.e, con.d));
+  joints.push(new Joint("pointto", con.g, con.f));
+  joints.push(new Joint("pointto", con.h, con.i));
+  joints.push(new Joint("pointto", con.j, con.b));
+  joints.push(new Joint("pointto", con.k, con.c));
+  
+  
+  mainbeam.col = [100, 100, 100];
+  strut.col = mainbeam.col;
+  crank.col = [50, 255, 100];
+  con.j.col = [255, 255, 50];
+  con.k.col = con.j.col;
+  con.g.col = [255, 50, 50];
+  con.h.col = con.g.col;
+  con.i.col = con.g.col;
+  con.b.col = [50, 50, 255];
+  con.d.col = con.b.col;
+  con.e.col = con.b.col;
+  con.f.col = [255, 150, 50];
+  con.c.col = con.f.col;
+}
+
+function draw(){
+  background(200);
+  
+  crank.rot-=keys[37]?rs:keys[39]?-rs:0;
+  console.log(crank.rot);
+  
+  joints.forEach(joint=>joint.update());
+  
+  for(c in con){
+    con[c].show();
+  }
+  
+  crank.show();
+  mainbeam.show();
+  strut.show();
+  
+  if(frameCount%200==0){
+    crank.path = [];
+    con.d.path = [];
+    con.f.path = [];
+    con.i.path = [];
+  }
+}
+
+
+
+
+function Line(pos, rot, len, allowPath){
+  this.pos = pos;
+  this.rot = rot;
+  this.len = len;
+  this.col = [255, 255, 255];
+  
+  this.allowPath = allowPath;
+  this.path = [];
+  
+  this.awr = function(){
+    return awr(this.pos, this.rot, this.len);
+  }
+  
+  this.show = function(){
+    push();
+    stroke(this.col[0], this.col[1], this.col[2]);
+    strokeWeight(5);
+    strokeCap(ROUND);
+    line(this.pos.x, this.pos.y, this.awr().x, this.awr().y);
+    pop();
+    push();
+    fill(0);
+    noStroke();
+    circle(this.pos.x, this.pos.y, 3);
+    circle(this.awr().x, this.awr().y, 3);
+    pop();
+    if(this.allowPath){
+      this.path.push(this.awr());
+      push();
+      noFill();
+      stroke(this.col[0], this.col[1], this.col[2]);
+      beginShape();
+      this.path.forEach(function(point){
+        vertex(point.x, point.y);
+      });
+      endShape();
+      pop();
+    }
+  }
+}
+function Joint(type, bodyT, bodyS, offset){
+  this.type = type;
+  this.bodyT = bodyT;
+  this.bodyS = bodyS;
+  this.offset = offset;
+  
+  this.update = function(){
+    for(i=0;i<5;i++){//stiffen them up
+      if(this.type=="static"){//working!!
+        var newDist = dist(0, 0, this.offset.x, this.offset.y);
+        var newRot = Math.atan2(this.offset.y, this.offset.x);
+        this.bodyS.pos = awr(this.bodyT.pos, this.bodyS.rot+newRot, newDist);
+        this.bodyS.rot = this.bodyT.rot;
+      }
+      if(this.type=="pointto"){
+        this.bodyT.rot = magicangle(this.bodyS.awr(), this.bodyT.pos);
+        this.bodyS.rot = magicangle(this.bodyT.awr(), this.bodyS.pos);
+      }
+      if(this.type=="swivel"){
+        this.bodyS.pos = this.bodyT.awr();
+      }
+      if(this.type=="parallel"){
+        this.bodyS.rot = this.bodyT.rot+((typeof this.offset != "undefined")?this.offset.rot:0);
+      }
+    }
+  }
+}
+</script>

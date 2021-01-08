@@ -1,0 +1,96 @@
+<!--Using Matter.js and p5.js-->
+<!--USE MATTER APPLYFORCE FUNCTION-->
+<!--USE MATTER APPLYFORCE FUNCTION-->
+<!--USE MATTER APPLYFORCE FUNCTION-->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.min.js"></script>
+<script>
+console.clear();
+var Engine = Matter.Engine,
+  World = Matter.World,
+  Bodies = Matter.Bodies,
+  Constraint = Matter.Constraint,
+  Mouse = Matter.Mouse,
+  MouseConstraint = Matter.MouseConstraint;
+
+var engine, world, barrier, mConstraint;
+var items = [];
+
+function setup(){
+  var canvas = createCanvas(400, 400);
+  engine = Engine.create();
+  engine.enableSleeping = true;
+  world = engine.world;
+  Engine.run(engine);
+  barrier = Bodies.rectangle(200, height, width, 100, { isStatic: true });
+  World.add(world, barrier);
+  
+  var prev = null;
+  for(x=200;x<600;x+=40){
+    var p = new Particle(x, 150, 17.5, "circle", !prev, 255);
+    items.push(p);
+    if(prev){
+      var options = {
+        bodyA: prev.body,
+        bodyB: p.body,
+        length: 20,
+        stiffness: 0.4
+      }
+      var constraint = Constraint.create(options);
+      World.add(world, constraint);
+    }
+    prev = p;
+  }
+  
+  addMouseConstraint;
+}
+
+function mousePressed(){
+  var size = 10;
+}
+
+function draw(){
+  background(51);
+  for(i=0;i<items.length;i++){
+    items[i].show();
+  }
+}
+
+
+
+
+function Particle(x, y, size, type, fixed, col){
+  this.size = size;
+  this.type = type;
+  this.col = col;
+  this.body = Bodies.rectangle(x, y, size, size, {isStatic: fixed});
+  
+  World.add(world, this.body);
+  this.show = function(){
+    var pos = this.body.position;
+    var angle = this.body.angle;
+    push();
+    fill(this.col);
+    translate(pos.x, pos.y);
+    if(this.type == "box"){
+      rect(0, 0, size, size);
+    }
+    if(this.type == "circle"){
+      circle(0, 0, size);
+    }
+    pop();
+  }
+}
+
+
+
+function addMouseConstraint(){
+  var canvasmouse = Mouse.create(canvas.elt);
+  var options = {
+    mouse: canvasmouse
+  }
+  mConstraint = MouseConstraint.create(engine, options);
+  World.add(world, mConstraint);
+}
+</script>

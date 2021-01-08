@@ -1,0 +1,35 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+console.clear();
+var rot = 0;
+var pos;
+var speed = 1;
+
+function setup(){
+  createCanvas(400, 400);
+  pos = createVector(200, 200);
+}
+
+function draw(){
+  background(50);
+  
+  if(mouseIsPressed){
+    speed += 0.5;
+    var dp = awr(pos, rot, speed);
+    speed*=0.9;
+    pos = dp;
+  }
+  else{
+    rot += Math.PI/48;
+  }
+  push();
+  pop();
+  push();
+  translate(pos.x, pos.y);
+  rotate(rot);
+  noStroke();
+  circle(0, 0, 15);
+  triangle(-20, -3, -20, 3, -10, 0);
+  pop();
+}
+</script>

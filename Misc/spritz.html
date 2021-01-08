@@ -1,0 +1,14 @@
+<div id="info" style="text-align: center; width: 400px; height: 400px; background: #e5e5e5; font-weight: bold; font-size: 70px;"></div>
+<script>
+var count = 0;
+var text = "Wow you are reading this sentence really fast!";
+var words = text.split(" ");
+
+reader = setInterval(function(){
+  if(count==words.length-1){
+    clearInterval(reader);
+  }
+  info.innerHTML = "<br><br>"+words[count].toUpperCase()+"<br><p style='font-size: 20px;'>"+(count+1)+"</p>";
+  count++;
+}, 175);
+</script>

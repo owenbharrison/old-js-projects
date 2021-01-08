@@ -1,0 +1,18 @@
+<script>
+var In = prompt("Put sentence below:");
+var words = In;
+words=words.split(" ");
+var url = "https://api.datamuse.com/words?ml=";
+function getContent(url, word){
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", url+""+word, false);
+  xmlhttp.send(null);
+  return xmlhttp.responseText;
+}
+for(i=0;i<words.length;i++){
+  var out = JSON.parse(getContent(url, words[i]));
+  words[i] = out[0].word;
+ 
+}
+alert("Changed:\n"+In+"\nTo:\n"+words.join(" "));
+</script>

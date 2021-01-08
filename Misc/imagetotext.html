@@ -1,0 +1,67 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var symbolSize = 15;
+var symbols = [];
+let img;
+
+function preload(){
+  img = loadImage("https://images-na.ssl-images-amazon.com/images/I/41Vpu7t0bLL._SX348_BO1,204,203,200_.jpg");
+}
+
+function setup() {
+  createCanvas(400, 400);
+
+  textSize(symbolSize);
+  textAlign(CENTER, CENTER);
+  image(img, 0, 0, width, height);
+  loadPixels();
+  var p = pixels;
+  updatePixels();
+  background(0);
+  
+  
+  for(y=0;y<=height;y+=symbolSize){
+    for(x=0;x<width;x+=symbolSize){
+      var symbol = new Symbol(x, y);
+      var z = (x+y*width)*4;
+      symbol.str(0);
+      symbol.col = [p[z], p[z+1], p[z+2]];
+      symbols.push(symbol);
+    }
+  }
+  console.log(symbols);
+}
+
+function draw() {
+  background(0);
+  symbols.forEach(function(symbol){
+    symbol.str(frameCount);
+    symbol.show();
+  });
+  push();
+  noFill();
+  stroke(0);
+  strokeWeight(symbolSize);
+  rect(0, 0, width, height);
+  pop();
+}
+
+function Symbol(x, y) {
+  this.x = x;
+  this.y = y;
+  this.value;
+  this.col = [0, 0, 0];
+  
+  this.sw = floor(random(7, 15));
+
+  this.str = function(frames) {
+    if(frames%this.sw==0){
+      this.value = String.fromCharCode(0x30A0 + floor(random(0, 97)));
+    }
+  }
+  this.show = function(){
+    fill(this.col[0], this.col[1], this.col[2]);
+    text(this.value, this.x, this.y);
+  }
+}
+</script>

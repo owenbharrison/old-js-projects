@@ -1,0 +1,20 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+var allPoints = [];
+
+function setup(){
+  createCanvas(400, 400);
+}
+
+function draw(){
+  background(200);
+  
+  if(mouseIsPressed){
+    allPoints.push([Math.round(mouseX/50)*50, Math.round(mouseY/50)*50]);
+  }
+  for(i=0;i<allPoints.length;i++){
+    circle(allPoints[i][0], allPoints[i][1], 5);
+    text("("+[allPoints[i][0], allPoints[i][1]]+")", allPoints[i][0]-25, allPoints[i][1]-5);
+  }
+}
+</script>

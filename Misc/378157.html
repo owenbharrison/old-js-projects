@@ -1,0 +1,102 @@
+<table style="border: solid;">
+  <th>
+    <h3>Original:</h3>
+    <img id="image" src="https://vignette.wikia.nocookie.net/animalplanetsthemostextreme/images/a/a0/Fox.jpg/revision/latest?cb=20180619191502" crossorigin="Anonymous">
+  </th>
+  
+  <th>
+    <h3>Modified:</h3>
+    <canvas id="canvas">
+    </canvas>
+  </th>
+</table>
+<script>
+var image = document.getElementById("image");
+//cat
+var cat = "https://images-na.ssl-images-amazon.com/images/I/41Vpu7t0bLL._SX348_BO1,204,203,200_.jpg";
+//fox
+var fox = "https://vignette.wikia.nocookie.net/animalplanetsthemostextreme/images/a/a0/Fox.jpg/revision/latest?cb=20180619191502"
+image.src = cat;
+</script>
+<script>
+//initialize
+var x = 0;
+var y = 0;
+var test = prompt("Simulation Number:\nenter number from 1 - 6", 4); //contrasted || grayscale || black & white || rainbow || black background || inverted
+var contrast = 60;
+var image = document.getElementById("image");
+var canvas = document.getElementById('canvas');
+var context = canvas.getContext('2d');
+
+//make image and canvas the same size
+canvas.width = image.width;
+canvas.height = image.height;
+
+//draw image
+context.drawImage(image, 0, 0);
+
+var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+//loop through every pixel in image
+var main = setInterval(function() {
+  for(y = 0; y < canvas.height; y++) {
+    var index = (x + y * canvas.width) * 4;
+    var light = (imageData.data[index + 0] + imageData.data[index + 1] + imageData.data[index + 2]) / 3; //brightness of said pixel
+
+    if(test == 1) { //contrasted
+      imageData.data[index + 0] = Math.floor(imageData.data[index + 0] / contrast) * contrast; //make less colors to choose from
+      imageData.data[index + 1] = Math.floor(imageData.data[index + 1] / contrast) * contrast; //make less colors to choose from
+      imageData.data[index + 2] = Math.floor(imageData.data[index + 2] / contrast) * contrast; //make less colors to choose from
+    }
+
+    if(test == 2) { //grayscale
+      imageData.data[index + 0] = light; //set every value to its overall average values.
+      imageData.data[index + 1] = light; //set every value to its overall average values.
+      imageData.data[index + 2] = light; //set every value to its overall average values.
+    }
+
+    if(test == 3) { //black & white
+      light = (light > 255 / 2) * 255; //if brightness than 255/2 make pixel white, else make pixel black
+      imageData.data[index + 0] = light;
+      imageData.data[index + 1] = light;
+      imageData.data[index + 2] = light;
+    }
+
+    if(test == 4) { //rainbow
+      imageData.data[index + 0] = x/(canvas.width/255);
+      imageData.data[index + 2] = y/(canvas.height/255);
+    }
+
+    if(test == 5) {//black background
+      if(light < 255 / 2) {
+        imageData.data[index] = 0;
+        imageData.data[index + 1] = 0;
+        imageData.data[index + 2] = 0;
+      }
+    }
+    
+    if(test == 6) {//inverted
+        imageData.data[index]  = 255 - imageData.data[index];
+        imageData.data[index + 1]  = 255 - imageData.data[index+1];
+        imageData.data[index + 2]  = 255 - imageData.data[index+2];
+    }
+    
+    if(test == 7) {//inverted
+        imageData.data[index] = Math.floor(Math.random()*255);
+        //imageData.data[index + 1] = Math.floor(Math.random()*255);
+        imageData.data[index + 2] = Math.floor(Math.random()*255);
+    }
+
+    //set alpha of each pixel to its maximum
+    imageData.data[index + 3] = 255;
+  }
+  x++;
+  if(x >= canvas.width) {
+    clearInterval(main);
+  }
+  context.putImageData(imageData, 0, 0);
+}, 10);
+
+//update pixels
+
+</script>

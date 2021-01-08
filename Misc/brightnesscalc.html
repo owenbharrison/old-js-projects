@@ -1,0 +1,25 @@
+<body>
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+let cam;
+
+function setup(){
+  createCanvas(800, 600);
+  cam = createCapture(VIDEO);
+  cam.hide();
+}
+
+function draw(){
+  image(cam, 0, 0, width, height);
+  loadPixels();
+  var sum = 0;
+  for(i=0;i<pixels.length;i+=4){
+    sum+=pixels[i]+pixels[i+1]+pixels[i+2];
+  }
+  var av = (sum/pixels.length)*3/4;
+  updatePixels();
+  background(av);
+  document.body.style.backgroundColor = "rgb("+[av, av, av]+")";
+}
+</script>
+</body>

@@ -1,0 +1,115 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.min.js"></script>
+<script>
+console.clear();
+var Engine = Matter.Engine,
+  World = Matter.World,
+  Bodies = Matter.Bodies,
+  Body = Matter.Body,
+  Composites = Matter.Composites,
+  Mouse = Matter.Mouse,
+  MouseConstraint = Matter.MouseConstraint;
+
+var engine, world, barrier, canvas, s1, s2, s3;
+var items = [];
+var size = 20;
+
+
+function setup(){
+  canvas = createCanvas(400, 400);
+  engine = Engine.create();
+  world = engine.world;
+  Engine.run(engine);
+  barrier = Bodies.rectangle(200, width, height*2, 100, {isStatic: true});
+  World.add(world, barrier);
+  
+  strokeWeight(3); 
+  addMC();
+  s1 = new SoftBody(100, 200, 5, 5, 7, 170);
+  s2 = new SoftBody(200, 200, 4, 4, 6, 255);
+  s3 = new SoftBody(300, 100, 4, 8, 10, 170);
+  console.log(world.composites[0]);
+}
+
+function draw(){
+  background(240);
+  push();
+  fill(200);
+  rectMode(CENTER);
+  rect(200, height, 2*width, 100);
+  pop();
+  var alp = 100;
+  s1.show(0, [53, 190, 240, alp]);
+  s2.show(1, [0, 255, 0, alp]);
+  s3.show(2, [252, 71, 71, alp]);
+}
+
+
+function SoftBody(x, y, columns, rows, radius, col){
+  this.columns = columns;
+  this.rows = rows;
+  this.radius = radius;
+  this.col = col;
+  this.body = Composites.softBody(x, y, this.columns, this.rows, 0, 0, true, this.radius);
+  World.add(world, this.body);
+  var comps = world.composites;
+  this.show = function(index, col){
+    var b = comps[index].bodies,
+      l = b.length,
+      w = this.columns,
+      h = this.rows,
+      r = this.radius,
+      rl = Math.sqrt(2)*r;
+    push();
+    //visual
+    fill(col);
+    stroke(col[0]*7/8, col[1]*7/8, col[2]*7/8);
+    strokeWeight(r/2);
+    beginShape();
+    //add topLeft
+    var tl = Math.atan2((b[0].position.y)-(b[w+1].position.y), (b[0].position.x)-(b[w+1].position.x));
+    vertex(rl*Math.cos(tl)+b[0].position.x, rl*Math.sin(tl)+b[0].position.y);
+    for(i=1;i<w-1;i++){//top
+      var index = i+w;
+      var angle = Math.atan2(b[i].position.y-b[index].position.y, b[i].position.x-b[index].position.x);
+      vertex(r*Math.cos(angle)+b[i].position.x, r*Math.sin(angle)+b[i].position.y);
+    }
+    //add topRight
+    var tr = Math.atan2((b[2*(w-1)].position.y)-(b[w-1].position.y), (b[2*(w-1)].position.x)-(b[w-1].position.x))-Math.PI;
+    vertex(rl*Math.cos(tr)+b[w-1].position.x, rl*Math.sin(tr)+b[w-1].position.y);
+    for(i=2;i<h;i++){//right
+      var index = i*w-1;
+      var angle = Math.atan2(b[index].position.y-b[index-1].position.y, b[index].position.x-b[index-1].position.x);
+      vertex(r*Math.cos(angle)+b[index].position.x, r*Math.sin(angle)+b[index].position.y);
+    }
+    //add bottomRight
+    var br = Math.atan2((b[l-1].position.y)-(b[l-w-2].position.y), (b[l-1].position.x)-(b[l-w-2].position.x));
+    vertex(rl*Math.cos(br)+b[l-1].position.x, rl*Math.sin(br)+b[l-1].position.y);
+    for(i=l-2;i>l-w;i--){//bottom
+      var angle = Math.atan2(b[i].position.y-b[i-w].position.y, b[i].position.x-b[i-w].position.x);
+      vertex(r*Math.cos(angle)+b[i].position.x, r*Math.sin(angle)+b[i].position.y);
+    }
+    //add bottomLeft
+    var bl = Math.atan2((b[l-2*w+1].position.y)-(b[l-w-1].position.y), (b[l-2*w+1].position.x)-(b[l-w-1].position.x))-Math.PI/4;
+    vertex(rl*Math.cos(bl)+b[l-w].position.x, rl*Math.sin(bl)+b[l-w].position.y);
+    for(i=h-1;i>1;i--){//left
+      var index = (i-1)*w;
+      var angle = Math.atan2(b[index].position.y-b[index+1].position.y, b[index].position.x-b[index+1].position.x);
+      vertex(r*Math.cos(angle)+b[index].position.x, r*Math.sin(angle)+b[index].position.y);
+    }
+    endShape(CLOSE);
+    pop();
+  }
+}
+
+function addMC(){
+  var mConstraint;
+  var canvasmouse = Mouse.create(canvas.elt);
+  pixelDensity(1);
+  var options = {
+    mouse: canvasmouse
+  }
+  mConstraint = MouseConstraint.create(engine, options);
+  World.add(world, mConstraint);
+}
+</script>

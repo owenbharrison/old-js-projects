@@ -1,0 +1,45 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+var totalX = 200;
+var totalY = 200;
+var sp = 1;
+var speed = 5;
+var keys = [];
+var pos = {
+  x: 200,
+  y: 200
+}
+
+function setup(){
+  createCanvas(600, 600);
+}
+
+function draw(){
+  background(170);
+  strokeWeight(0.1);
+  pos.x += keys[65]||keys[37] ? speed : keys[68]||keys[39] ? -speed : 0;
+  pos.y += keys[87]||keys[38] ? speed : keys[83]||keys[40] ? -speed : 0;
+  for(x=0;x<=600;x+=sp){//top
+    line(x, 0, totalX, totalY);
+  }
+  for(x=0;x<=600;x+=sp){//bottom
+    line(x, 600, totalX, totalY);
+  }
+  for(y=0;y<=600;y+=sp){//left
+    line(0, y, totalX, totalY);
+  }
+  for(y=0;y<=600;y+=sp){//right
+    line(600, y, totalX, totalY);
+  }
+  totalX += mouseIsPressed ? pmouseX-mouseX : 0;
+  totalY += mouseIsPressed ? pmouseY-mouseY : 0;
+}
+
+document.addEventListener("keydown", function(){
+  keys[event.keyCode] = true;
+});
+
+document.addEventListener("keyup", function(){
+  keys[event.keyCode] = false;
+});
+</script>

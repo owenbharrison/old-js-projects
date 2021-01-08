@@ -1,0 +1,110 @@
+<!--Using Matter.js and p5.js-->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.js"></script>
+<script>
+console.clear();
+var Engine = Matter.Engine,
+  World = Matter.World,
+  Bodies = Matter.Bodies;
+
+var engine, world, barrier, canvas;
+var items = [];
+var player = 0;
+var col1, col2;
+
+function setup(){
+  canvas = createCanvas(400, 400);
+  engine = Engine.create();
+  world = engine.world;
+  Engine.run(engine);
+  setBoard();
+  col1 = prompt("Which color would you like Player1?", "red");
+  col2 = prompt("Which color would you like Player2?", "yellow");
+}
+
+function mousePressed(){
+  var col = player<1 ? col1 : col2;
+  items.push(new Particle(mouseX, mouseY, 19, col));
+  player++;
+  player = player%2;
+}
+
+function draw(){
+  background(51);
+  for(i=0;i<items.length;i++){
+    items[i].show();
+    if(items[i].body.position.y>height+100){
+      items[i].deleteObj();
+      items.splice(i, 1);
+      i--;
+    }
+  }
+}
+
+
+
+
+
+function Particle(x, y, r, col){
+  this.r = r;
+  this.col = col;
+  this.body = Bodies.circle(x, y, r);
+  
+  World.add(world, this.body);
+  
+  this.isAbsent = function(){
+    var pos = this.body.position;
+    return (pos.y>height+100);
+  }
+  
+  this.deleteObj = function(){
+    World.remove(world, this.body);
+  }
+
+  this.show = function(){
+    var pos = this.body.position;
+    var angle = this.body.angle;
+    push();
+    fill(this.col);
+    translate(pos.x, pos.y);
+    circle(0, 0, r*2);
+    pop();
+  }
+}
+
+function Barrier(x, y, w, h){
+  this.w = w;
+  this.h = h;
+  this.body = Bodies.rectangle(x, y, this.w, this.h, {isStatic: true});
+  World.add(world, this.body);
+  
+  this.show = function(){
+    var pos = this.body.position;
+    push();
+    translate(pos.x, pos.y);
+    rectMode(CENTER);
+    rect(0, 0, this.w, this.h);
+    pop();
+  }
+  
+}
+
+
+
+function setBoard(){
+  for(x=25;x<=375;x+=50){
+    items.push(new Barrier(x, 200, 10, 300));
+  }
+  items.push(new Barrier(200, 350, 360, 10));
+}
+
+function addMouseConstraint(){
+  var canvasmouse = Mouse.create(canvas.elt);
+  var options = {
+    mouse: canvasmouse
+  }
+  mConstraint = MouseConstraint.create(engine, options);
+  World.add(world, mConstraint);
+}
+</script>

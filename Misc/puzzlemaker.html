@@ -1,0 +1,28 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+let img;
+var sz = 25;
+
+function preload(){
+  img = createImg("https://images.unsplash.com/flagged/photo-1567359231520-8038889de517?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&w=1000&q=80");
+  img.hide();
+}
+
+function setup(){
+  createCanvas(Math.round(img.width/100)*75, Math.round(img.height/100)*75);
+  background(255);
+  image(img, 0, 0, width, height);
+  console.log(width, height);
+  for(x=sz;x<=width;x+=sz){
+    for(y=sz;y<=height;y+=sz){
+      strokeWeight(1);
+      if(y!=height){
+        line(x, y, x-sz, y);//horiz
+      }
+      if(x!=width){
+        line(x, y, x, y-sz);//vert
+      }
+    }
+  }
+}
+</script>

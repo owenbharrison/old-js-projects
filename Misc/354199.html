@@ -1,0 +1,66 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+var totalX = 0;
+var totalY = 0;
+var spin = 0;
+function setup() {
+  createCanvas(400, 400, WEBGL);
+}
+
+function draw() {
+  var dx = mouseX-width/2;
+  var dy = mouseY-height/2;
+  background(125);
+  
+  push();//head
+  ambientMaterial(255, 255, 255);
+  pointLight(255, 255, 255, dx, dy, 200);
+  rotateY(-totalX/175);
+  rotateX(totalY/175);
+  box(50);
+  pop();
+  
+  push();//torso
+  ambientMaterial(0, 255, 255);
+  pointLight(255, 255, 255, dx, dy, 200);
+  translate(0, 62.5, 0);
+  box(50, 75, 25);
+  pop();
+  
+  push();//left arm
+  ambientMaterial(0, 255, 255);
+  pointLight(255, 255, 255, dx, dy, 200);
+  translate(-37.5, 62.5, 0);
+  box(25, 75, 25);
+  pop();
+  
+  push();//right arm
+  ambientMaterial(0, 255, 255);
+  pointLight(255, 255, 255, dx, dy, 200);
+  translate(37.5, 62.5, 0);
+  box(25, 75, 25);
+  pop();
+  
+  push();//left leg
+  ambientMaterial(0, 0, 255);
+  pointLight(255, 255, 255, dx, dy, 200);
+  translate(-12.5, 137.5, 0);
+  box(25, 75, 25);
+  pop();
+  
+  push();//right leg
+  ambientMaterial(0, 0, 255);
+  pointLight(255, 255, 255, dx, dy, 200);
+  translate(12.5, 137.5, 0);
+  box(25, 75, 25);
+  pop();
+  
+  totalX = mouseX<=400&&mouseY<=400 ? -mouseX+200 : 0;
+  totalY = mouseX<=400&&mouseY<=400 ? -mouseY+200 : 0;
+}
+
+function mouseWheel(event){
+  spin += event.delta/50;
+  
+}
+</script>

@@ -1,0 +1,170 @@
+<!--Use mouse to drag square, press space to lock particle-->
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var gravity=0.5,
+    airfriction=0.995,
+    bounce=0.995,
+    size=5,
+    world={points:[],sticks:[],forms:[]};
+
+function setup(){
+  createCanvas(400, 400);
+  var form = new Form(200, 200, 7, 65, true);
+  form.initiate();
+  form.col=[0,70,255];
+  form = new Form(75, 200, 4, 40, false);
+  form.initiate();
+  form.col=[255,100,0];
+  form = new Form(325, 200, 5, 45, false);
+  form.initiate();
+  form.col=[20,255,70];
+  console.log(world);
+}
+
+function draw(){
+  background(170);
+  world.forms.forEach(f=>{
+    f.update();
+    f.show();
+  });
+}
+
+
+function Form(x, y, sides, radius, showSticks){
+  this.pos = {x: x, y: y};
+  this.sides = sides;
+  this.radius = radius;
+  this.showSticks=showSticks;
+  this.col = [255,0,0];
+  this.points = [];
+  this.sticks = [];
+  world.forms.push(this);
+  
+  this.initiate = function(){
+    for(a=Math.PI*2/this.sides;a<Math.PI*2+Math.PI*2/this.sides;a+=Math.PI*2/this.sides){
+      var dp = awr(this.pos,a,this.radius);
+      this.points.push(new Point(dp.x,dp.y,dp.x,dp.y));
+    }
+    for(i=0;i<this.points.length-1;i++){
+      for(j=i+1;j<this.points.length;j++){
+        var dist = distance(this.points[i].pos.x-this.points[j].pos.x,this.points[i].pos.y-this.points[j].pos.y);
+        this.sticks.push(new Stick(this.points[i],this.points[j],dist));
+      }
+    }
+  }
+  
+  this.poses = function(){
+    var arr=[];
+    this.points.forEach(p=>{
+      arr.push(p.pos);
+    });
+    return arr;
+  }
+  
+  this.update = function(){
+    this.points.forEach(p=>p.update());
+    for(i=0;i<7;i++){this.sticks.forEach(s=>s.update()),this.points.forEach(p=>p.constrain());}
+    this.pos = avg(this.poses());
+  }
+  
+  this.show = function(){
+    push();
+    fill(this.col[0],this.col[1],this.col[2]);
+    beginShape();
+    this.points.forEach(p=>{
+      vertex(p.pos.x, p.pos.y);
+    });
+    endShape(CLOSE);
+    pop();
+    this.points.forEach(p=>{p.show();});
+    if(this.showSticks){
+      this.sticks.forEach(s=>{s.show();});
+    }
+  }
+}
+
+function Point(x, y, ox, oy){
+  this.pos = {x: x, y: y};
+  this.oldpos = {x: ox, y: oy};
+  this.static = false;
+  this.mda = Infinity;
+  this.mdl = Infinity;
+  world.points.push(this);
+  
+  this.update = function(){
+    var vx=(this.pos.x-this.oldpos.x)*airfriction;
+    var vy=(this.pos.y-this.oldpos.y)*airfriction;
+    if(!this.static){
+      this.oldpos.x=this.pos.x,this.oldpos.y=this.pos.y,this.pos.x+=vx,this.pos.y+=vy+gravity;
+    }
+    this.mouseConstraint();
+  }
+  
+  this.constrain = function(){
+    var vx=(this.pos.x-this.oldpos.x)*airfriction;
+    var vy=(this.pos.y-this.oldpos.y)*airfriction;
+    if(this.pos.x>width){this.pos.x=width,this.oldpos.x=this.pos.x+vx*bounce;}
+    else if(this.pos.x<0){this.pos.x=0,this.oldpos.x=this.pos.x+vx*bounce;}
+    if(this.pos.y>height){this.pos.y=height,this.oldpos.y=this.pos.y+vy*bounce;}
+    else if(this.pos.y<0){this.pos.y=0,this.oldpos.y=this.pos.y+vy*bounce;}
+  }
+  
+  this.mouseConstraint = function(){
+    this.mda = distance(mouseX-this.pos.x, mouseY-this.pos.y);
+    if(!mouseIsPressed){this.mdl = this.mda;}
+    if(mouseIsPressed&&this.mdl<size){
+      if(!this.static){
+        var dx=this.pos.x-mouseX,dy=this.pos.y-mouseY,dist=distance(dx, dy),diff=0-dist,percent=diff/dist/2,ox=dx*percent,oy=dy*percent;
+        this.pos.x += ox,
+        this.pos.y += oy;
+      }
+      push();
+      stroke(255);
+      line(this.pos.x, this.pos.y, mouseX, mouseY);
+      pop();
+      keys[32]?this.static=true:0;
+      keys[16]?this.static=false:0;
+    }
+  }
+  
+  this.show = function(){
+    push();
+    fill(0);
+    noStroke();
+    circle(this.pos.x, this.pos.y, size);
+    pop();
+  }
+}
+
+function Stick(b0, b1, len){
+  this.b0 = b0;
+  this.b1 = b1;
+  this.len = len;
+  world.sticks.push(this);
+  
+  this.update = function(){
+    var dx = this.b1.pos.x-this.b0.pos.x,
+        dy = this.b1.pos.y-this.b0.pos.y,
+        dist = distance(dx, dy),
+        diff = this.len-dist,
+        percent = diff/dist/2,
+        ox = dx*percent,
+        oy = dy*percent;
+    if(!b0.static){
+      this.b0.pos.x -= ox,
+      this.b0.pos.y -= oy;
+    }
+    if(!b1.static){
+      this.b1.pos.x += ox,
+      this.b1.pos.y += oy;
+    }
+  }
+  
+  this.show = function(){
+    push();
+    stroke(0);
+    line(this.b0.pos.x, this.b0.pos.y, this.b1.pos.x, this.b1.pos.y);
+    pop();
+  }
+}
+</script>

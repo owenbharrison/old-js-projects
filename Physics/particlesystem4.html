@@ -1,0 +1,243 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<!--new fps counter library-->
+<script src="https://utils.cdnjs.repl.co/fpscount.js"></script>
+<script>
+console.clear();
+var gravity = -1.5;
+var jointsize = 8;
+var f = 20;
+var mid = {};
+var world = {particles:[], compounds:[], constraints:[], boundaries: []}; 
+
+var turn1 = 0.7;
+var turn2 = -1.1;
+var ts = 0.025;
+var zoom = 1;
+var axis = {len:50};
+
+function setup(){
+  createCanvas(400, 650);
+  mid.x = width/2;
+  mid.y = height/2;
+  world.boundaries.push(new Boundary(height-f, "ground", "min"));
+  var compound = new Compound(200, 200, 200, 11, 11);
+  compound.sidelen = 10;
+  compound.initiate();
+  console.log(world);
+  axislen = 50;
+  axis.xb = {x:axis.len,y:0,z:0};
+  axis.yb = {x:0,y:axis.len,z:0};
+  axis.zb = {x:0,y:0,z:axis.len};
+  axis.ob = {x:0,y:0,z:0};
+}
+
+function draw(){
+  background(127);
+  turn1-=keys[37]?ts:keys[39]?-ts:0;
+  turn2-=keys[38]?ts:keys[40]?-ts:0;
+  
+  world.compounds.forEach(c=>{
+    c.update();
+    c.show();
+  });
+  
+  var rf = 2;
+  random(world.particles).addForce(random(-rf,rf),random(-rf,rf),random(-rf,rf));
+  
+  var xbp = point3Dtopoint2D(axis.xb.x,axis.xb.y,axis.xb.z,turn1,turn2);
+  var ybp = point3Dtopoint2D(axis.yb.x,axis.yb.y,axis.yb.z,turn1,turn2);
+  var zbp = point3Dtopoint2D(axis.zb.x,axis.zb.y,axis.zb.z,turn1,turn2);
+  var obp = point3Dtopoint2D(axis.ob.x,axis.ob.y,axis.ob.z,turn1,turn2);
+  
+  
+  push(),strokeWeight(2.5),stroke(255,0,0),line(obp.x+mid.x,obp.y+height-(axis.len+5),xbp.x+mid.x,xbp.y+height-(axis.len+5)),pop();
+  push(),strokeWeight(2.5),stroke(0,255,0),line(obp.x+mid.x,obp.y+height-(axis.len+5),ybp.x+mid.x,ybp.y+height-(axis.len+5)),pop();
+  push(),strokeWeight(2.5),stroke(0,0,255),line(obp.x+mid.x,obp.y+height-(axis.len+5),zbp.x+mid.x,zbp.y+height-(axis.len+5)),pop();
+}
+
+
+
+
+
+function Compound(x, y, z, xlen, zlen){
+  this.pos = {x: x, y: y, z: z};
+  this.xlen = xlen;
+  this.zlen = zlen;
+  this.bodies = [];
+  this.sidelen = 20;
+  this.constraints = [];
+  this.col = [255, 255, 255];
+  
+  this.initiate = function(){
+    var xl = this.xlen;
+    var zl = this.zlen;
+    for(let z=0;z<zl;z++){
+      var z_ = (z-zl/2)*this.sidelen*2;
+      for(let x=-xl/2;x<xl/2;x++){
+        var x_ = (x-xl/2)*this.sidelen*2;
+        var body = new Particle(x_, 0, z_);
+        if((x==-xl/2||x==xl/2-1)&&(z==0||z==zl-1)){
+          body.static = true;
+        }
+        body.parent = this;
+        this.bodies.push(body);
+      }
+    }
+    this.bodies[0].pos = {x:-mid.x/2,y:0,z:-mid.x/2};
+    this.bodies[xl-1].pos = {x:-mid.x/2,y:0,z:mid.x/2};
+    this.bodies[this.bodies.length-xl].pos = {x:mid.x/2,y:0,z:-mid.x/2};
+    this.bodies[this.bodies.length-1].pos = {x:mid.x/2,y:0,z:mid.x/2};
+    var bl = this.bodies.length;
+    for(let i=0;i<bl;i++){
+      if((i+1)%xl!=0){
+        var b0 = this.bodies[i];
+        var b1 = this.bodies[i+1];
+        var c = {b0: b0, b1: b1, len: this.sidelen};
+        this.constraints.push(c);
+        world.constraints.push(c);
+        var c = {b0: b1, b1: b0, len: this.sidelen};
+        this.constraints.push(c);
+        world.constraints.push(c);
+      }
+    }
+    for(let i=0;i<bl;i++){
+      if(i+zl<this.bodies.length){
+        var b0 = this.bodies[i];
+        var b1 = this.bodies[i+zl];
+        var c = {b0: b0, b1: b1, len: this.sidelen};
+        this.constraints.push(c);
+        world.constraints.push(c);
+        var c = {b0: b1, b1: b0, len: this.sidelen};
+        this.constraints.push(c);
+        world.constraints.push(c);
+      }
+    }
+    world.compounds.push(this);
+  }
+  
+  this.poses = function(){
+    var poses = [];
+    for(let i=0;i<this.bodies.length;i++){
+      poses[i] = this.bodies[i].pos;
+    }
+    return poses;
+  }
+  
+  this.update = function(){
+    this.constraints.forEach(c=>{
+      spring(c.b0, c.b1, c.len);
+    });
+    
+    this.pos = avg(this.poses());
+  }
+  this.show = function(){
+    for(let i=0;i<this.constraints.length;i+=2){
+      c = this.constraints[i];
+      push();
+      stroke(51);
+      strokeWeight(1.5);
+      var dp0 = point3Dtopoint2D(c.b0.pos.x, c.b0.pos.y, c.b0.pos.z, turn1, turn2);
+      var dp1 = point3Dtopoint2D(c.b1.pos.x, c.b1.pos.y, c.b1.pos.z, turn1, turn2);
+      line(dp0.x+mid.x, dp0.y+mid.y, dp1.x+mid.x, dp1.y+mid.y);
+      push();
+    }
+    this.bodies.forEach(b=>{
+      b.show();
+      b.checkCollision();
+    });  
+  }
+}
+
+
+
+
+
+
+
+function Particle(x, y, z){
+  this.pos = {x: x, y: y, z: z};
+  this.vel = {x: 0, y: 0, z: 0};
+  this.acc = {x: 0, y: 0, z: 0};
+  this.parent = null;
+  this.mda = 0;
+  this.mdl = 0;
+  this.static = false;
+  world.particles.push(this);
+  
+  this.addForce = function(x, y, z){
+    if(!this.static){
+      this.acc = {x: x, y: y, z: z};
+      this.vel.x += this.acc.x;
+      this.vel.y += this.acc.y;
+      this.vel.z += this.acc.z;
+    }
+  }
+  this.checkCollision = function(){
+    world.boundaries.forEach(i=>{
+      if(i.type=="ground"){
+        if(this.pos.y>i.val-jointsize/2){
+          this.vel.y=0;
+          this.pos.y=i.val-jointsize/2;
+        }
+        else{
+          this.addForce(0, gravity, 0);
+        }
+      }
+    });
+  }
+  this.show = function(){
+    this.pos.x += this.vel.x;
+    this.pos.y += this.vel.y;
+    this.pos.z += this.vel.z;
+    this.vel.x *= 0.93;
+    this.vel.y *= 0.93;
+    this.vel.z *= 0.93;
+    push();
+    noStroke();
+    fill(map(distance3d(this.vel.x, this.vel.y, this.vel.z), 0, 2.75, 0, 255));
+    var dp = point3Dtopoint2D(this.pos.x, this.pos.y, this.pos.z, turn1, turn2);
+    circle(dp.x+mid.x, dp.y+mid.y, jointsize);
+    pop();
+  }
+}
+
+
+function Boundary(val, type, valtype){
+  this.val = val;
+  this.type = type;
+  this.valtype = valtype;
+}
+
+
+
+
+
+
+
+function spring(p0, p1, len){
+  var dist = distance3d(p0.pos.x-p1.pos.x, p0.pos.y-p1.pos.y, p0.pos.z-p1.pos.z);
+  var xd0 = p0.pos.x-p1.pos.x;
+  var yd0 = p0.pos.y-p1.pos.y;
+  var zd0 = p0.pos.z-p1.pos.z;
+  var newVec0 = makeVectorShorter({x: xd0, y: yd0, z: zd0}, (dist-len)/2);
+  
+  p0.addForce(-newVec0.x/2, -newVec0.y/2, -newVec0.z/2);//apply opposite
+  p1.addForce(newVec0.x/2, newVec0.y/2, newVec0.z/2);//apply normal
+}
+
+
+
+function makeVectorShorter(vec, len){
+  var dist = distance3d(vec.x, vec.y, vec.z);
+  var change = len/dist;
+  return {x: vec.x*change, y: vec.y*change, z: vec.z*change};
+}
+
+function point3Dtopoint2D(xi, yi, zi, t1, t2){
+  return {x: Math.sin(t1)*xi-Math.cos(t1)*zi, y:(Math.cos(t1)*xi+Math.sin(t1)*zi)*Math.cos(t2)+Math.sin(t2)*yi}
+}
+
+function mouseWheel(e){
+  zoom += e.delta/700;
+}
+</script>

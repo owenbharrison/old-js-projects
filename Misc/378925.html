@@ -1,0 +1,66 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+var mw, mh;
+var pos;
+var rot = 0;
+var rs = 0.25;
+var rv = 0;
+var speed = 0.75;
+var vel = 0;
+var keys = [];
+
+
+function setup(){
+  createCanvas(400, 400);
+  mw = width/2;
+  mh = height/2;
+  pos = {x: mw, y: mh}
+}
+
+function draw(){
+  background(200);
+  rv += random(-1, 1)*rs;
+  vel += random(0, 1)*speed;
+  rv*=0.9;
+  vel*=0.9;
+  rot+=rv;
+  var np = cv(rot, vel)
+  pos.x+=np.x;
+  pos.y+=np.y;
+  push();
+  noStroke();
+  fill(30, 100, 255, 70);
+  shapeFrom([awr(rot, 20, pos.x, pos.y), awr(rot+Math.PI*5/6, 20, pos.x, pos.y), awr(rot+Math.PI*7/6, 20, pos.x, pos.y)];)
+  pop();
+  rectMode(CENTER);
+  push();
+  noFill();
+  strokeWeight(4);
+  rect(mw, mh, width, height);
+  pop();
+}
+
+
+function cv(r, l, x, y){
+  x = x || 0;
+  y = y || 0;
+  return {x: l*cos(r)+x, y: l*sin(r)+y} 
+}
+
+
+function shapeFrom(arr){
+  beginShape()
+  for(pos in arr){
+    vertex(pos.x, pos.y);
+  }
+  endShape(endCondition);
+}
+
+window.addEventListener("keydown", function(){
+  keys[event.keyCode] = true;
+});
+
+window.addEventListener("keyup", function(){
+  keys[event.keyCode] = false;
+});
+</script>

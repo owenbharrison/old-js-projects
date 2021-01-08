@@ -1,0 +1,106 @@
+<div>
+  <canvas id="canvas" width="480" height="360" style="user-select: none;"></canvas>
+</div>
+<div>
+  <video id="video" width="480" height="360" autoplay="" style="user-select: none;"></video>
+</div>
+<div>
+  <svg id="svg" width="480" height="360" style="user-select: none;">
+    <circle id="circle" r="4" style="fill: black;"></circle>
+    <path id="path" style="stroke: black; stroke-width: 3px; fill: none;"></path>
+  </svg>
+</div>
+<style>
+div{
+  position: absolute;
+  margin: auto;
+}
+</style>
+<script> 
+//visual init
+var pathArr = [];
+var svg = document.getElementById("svg");
+var info = document.getElementById("info");
+var path = document.getElementById("path");
+var circle = document.getElementById("circle");
+
+//internal init
+var v = document.getElementById('video');
+var canvas = document.getElementById('canvas');
+var context = canvas.getContext('2d');
+var back = document.createElement('canvas');
+var backcontext = back.getContext('2d');
+
+//camera init
+if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+    v.srcObject = stream;
+    v.play();
+  });
+}
+
+//start main
+document.addEventListener('DOMContentLoaded', function() {
+  var cw, ch;
+  v.addEventListener('play', function() {
+    cw = v.clientWidth;
+    ch = v.clientHeight;
+    canvas.width = cw;
+    canvas.height = ch;
+    back.width = cw;
+    back.height = ch;
+    draw(v, context, backcontext, cw, ch);
+  }, false);
+
+}, false);
+
+function draw(v, c, bc, w, h) {
+  if(v.paused || v.ended) return false;
+  bc.drawImage(v, 0, 0, w, h);
+  var idata = bc.getImageData(0, 0, w, h);
+  var data = idata.data;
+  var greenPixels = 0;
+  var bluePixels = 0;
+  var allX = 0;
+  var allY = 0;
+  for(x=0;x<480;x++){
+    for(y=0;y<360;y++){  
+      //init
+	  var i = (x+y*480)*4;
+      var gd = 100;
+	  var bd = 105;
+      var green = (data[i]<gd&&data[i+1]>255-gd&&data[i+2]<gd)*1;
+	  var blue = (data[i]<bd&&data[i+1]<bd&&data[i+2]>255-bd)*1;
+	  
+      //get pixel pos average and count green pixels
+	  if(green>0){
+        allX += x;
+        allY += y;
+        greenPixels++;
+      }
+
+	  //count blue pixels
+	  bluePixels += (blue>0)*1;
+	  
+      //manipulate canvas pixels
+	  data[i] = 0;
+      data[i + 1] *= green;
+      data[i + 2] *= blue;
+    }
+  }
+  var cursor = [Math.round(allX/greenPixels), Math.round(allY/greenPixels)];
+  circle.setAttribute("cx", cursor[0]);
+  circle.setAttribute("cy", cursor[1]);
+  if(!isNaN(cursor[0])&&greenPixels>100){
+	pathArr.push(cursor+" ");
+    path.setAttribute("d", "M"+pathArr);
+  }
+  if(bluePixels>60){//clear screen
+    pathArr = [];
+	path.setAttribute("d", "M"+pathArr);
+  }
+  idata.data = data;
+  c.putImageData(idata, 0, 0);
+  setTimeout(draw, 20, v, c, bc, w, h);
+}
+</script>

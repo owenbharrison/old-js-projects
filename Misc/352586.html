@@ -1,0 +1,40 @@
+<svg id="svg" width="500" height="500" style="border: solid;">
+  <path id="path" style="stroke-width: 3px; stroke: black; fill: transparent;"/>
+</svg>
+<script>
+var simSpeed = 15;//10-50
+var gridSize = 50;//multiple of 25
+var waves = 2;
+var svg = document.getElementById("svg");
+var path = document.getElementById("path");
+var pathArr = [];//makes the mesh
+var vertexes = [];//stores all original 
+var rotations = [];//stroes 
+
+
+for(y=50;y<450;y+=gridSize){
+  for(x=50;x<=450;x+=gridSize){
+    vertexes.push([x, y]);
+    rotations.push((x+y)*waves);
+  }
+}
+
+
+sim = setInterval(function(){
+  var index = 0;
+  for(y=50;y<450;y+=gridSize){
+    for(x=50;x<=450;x+=gridSize){
+      pathArr[index*2] = [gridSize*0.75*Math.cos(rotations[index])+vertexes[index][0], gridSize*0.75*Math.sin(rotations[index])+vertexes[index][1]];
+      pathArr[index*2+1] = [gridSize*0.75*Math.sin(rotations[index])+vertexes[index][0], gridSize*0.75*Math.sin(rotations[index])+vertexes[index][1]+gridSize];
+      rotations[index]+=simSpeed/(20+simSpeed);//rotation rate
+      index++;
+      path.setAttribute("d", "M"+pathArr.join(" "));
+    }
+  }
+}, 1000/simSpeed);
+
+
+//change at x+ y   *width and
+//and
+//change at x+(y-1)*width
+</script>

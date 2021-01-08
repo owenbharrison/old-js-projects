@@ -1,0 +1,75 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
+<script>
+let cam;
+var col = {
+  r: 255,
+  g: 150,
+  b: 0
+}
+var ct = 40;//threshold
+var c = 100;
+
+function setup() {
+  createCanvas(320, 240);
+  cam = createCapture(VIDEO);
+  cam.hide();
+}
+
+function draw() {
+  background(50);
+  image(cam, 0, 0, width, height);
+  loadPixels();
+  var avgx = 0;
+  var avgy = 0;
+  var cx = 0;
+  var cy = 0;
+  var results = [];
+  for(y=0;y<height;y++){
+    for(x=0;x<width;x++){
+      var z = (x+y*width)*4;
+      var r = pixels[z+0];
+      var g = pixels[z+1];
+      var b = pixels[z+2];
+      if(r>col.r-ct&&r<col.r+ct&&g>col.g-ct&&g<col.g+ct&&b>col.b-ct&&b<col.b+ct){
+        pixels[z+0] = 0;
+        pixels[z+1] = 0;
+        pixels[z+2] = 0;
+        results.push(z);//add pixel that is in threshold
+        avgx += x;
+        avgy += y;
+        cx++;
+        cy++;
+      }
+      pixels[z+3] = 255;
+    }
+  }
+  updatePixels();
+  avgx /= cx;
+  avgy /= cy;
+  push();
+  circle(avgx, avgy, 15);
+  pop();
+  for(i in results){//loop(results)
+    var z = results[i];
+    pixels[z+0];
+  }
+}
+
+function mousePressed(){
+  var z = (mouseX+mouseY*width)*4;
+  var obj = {
+    r: pixels[z+0],
+    g: pixels[z+1],
+    b: pixels[z+2]
+  }
+  col = obj;
+  console.log("newCol: "+JSON.stringify(col));
+}
+
+function mouseWheel(event) {
+  var change = 3;
+  ct += change*((event.delta>0)*2-1);
+  console.log("newThreshold: "+ct);
+}
+</script>

@@ -1,0 +1,143 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var rs = Math.PI/60;
+
+var crank;
+var connector;
+var connector2;
+var beam;
+var beamextend;
+var output;
+var outputextend;
+
+var joints = [];
+
+
+function setup(){
+  createCanvas(400, 400);
+  
+  crank = new Line({x:180, y:200}, -Math.PI/2, 20, true); 
+  connector = new Line(crank.awr(), 0, 40);
+  beam = new Line({x:220, y:200}, 0, 40, true);
+  output = new Line(crank.awr(), 0, 50, true);
+  beamextend = new Line(beam.awr(), 0, 20, true);
+  connector2 = new Line(beamextend.awr(), 0, connector.len);
+  outputextend = new Line(crank.awr(), 0, beamextend.len);
+  
+  crank.col = [0, 100, 255];
+  connector.col = [255, 255, 0];
+  beam.col = [255, 0, 0];
+  output.col = [0, 255, 100];
+  
+  beamextend.col = beam.col;
+  connector2.col = connector.col;
+  outputextend.col = output.col;
+  
+  joints.push(new Joint("pointto", beam, connector));
+  joints.push(new Joint("swivel", crank, connector));
+  joints.push(new Joint("swivel", crank, output));
+  joints.push(new Joint("parallel", beam, output, {rot: -Math.PI/2}));
+  joints.push(new Joint("static", beam, beamextend, {x: beam.len, y: 0}));
+  joints.push(new Joint("swivel", beamextend, connector2));
+  joints.push(new Joint("swivel", crank, outputextend));
+  joints.push(new Joint("parallel", connector, connector2, {rot: Math.PI}));
+  joints.push(new Joint("parallel", output, outputextend, {rot: Math.PI/2}));
+}
+
+function draw(){
+  background(170);
+  
+  crank.rot-=keys[37]?rs:keys[39]?-rs:0;
+  
+  joints.forEach(joint=>{
+    joint.update();
+  });
+  
+  if(frameCount%200==0){
+    crank.path = [];
+    beam.path = [];
+    output.path = [];
+  }
+  
+  crank.show();
+  connector.show();
+  beam.show();
+  output.show();
+  connector2.show();
+  beamextend.show();
+  outputextend.show();
+}
+
+
+
+
+
+
+function Line(pos, rot, len, allowPath){
+  this.pos = pos;
+  this.rot = rot;
+  this.len = len;
+  this.col = [255, 255, 255];
+  
+  this.allowPath = allowPath;
+  this.path = [];
+  
+  this.awr = function(){
+    return awr(this.pos, this.rot, this.len);
+  }
+  
+  this.show = function(){
+    push();
+    stroke(this.col[0], this.col[1], this.col[2]);
+    strokeWeight(5);
+    strokeCap(ROUND);
+    line(this.pos.x, this.pos.y, this.awr().x, this.awr().y);
+    pop();
+    push();
+    fill(0);
+    noStroke();
+    circle(this.pos.x, this.pos.y, 3);
+    circle(this.awr().x, this.awr().y, 3);
+    pop();
+    if(this.allowPath){
+      this.path.push(this.awr());
+      push();
+      noFill();
+      stroke(this.col[0], this.col[1], this.col[2]);
+      beginShape();
+      this.path.forEach(function(point){
+        vertex(point.x, point.y);
+      });
+      endShape();
+      pop();
+    }
+  }
+}
+function Joint(type, bodyT, bodyS, offset){
+  this.type = type;
+  this.bodyT = bodyT;
+  this.bodyS = bodyS;
+  this.offset = offset;
+  
+  this.update = function(){
+    for(i=0;i<5;i++){//stiffen them up
+      if(this.type=="static"){//working!!
+        var newDist = dist(0, 0, this.offset.x, this.offset.y);
+        var newRot = Math.atan2(this.offset.y, this.offset.x);
+        this.bodyS.pos = awr(this.bodyT.pos, this.bodyS.rot+newRot, newDist);
+        this.bodyS.rot = this.bodyT.rot;
+      }
+      if(this.type=="pointto"){
+        this.bodyT.rot = magicangle(this.bodyS.awr(), this.bodyT.pos);
+        this.bodyS.rot = magicangle(this.bodyT.awr(), this.bodyS.pos);
+      }
+      if(this.type=="swivel"){
+        this.bodyS.pos = this.bodyT.awr();
+      }
+      if(this.type=="parallel"){
+        this.bodyS.rot = this.bodyT.rot+((typeof this.offset != "undefined")?this.offset.rot:0);
+      }
+    }
+  }
+}
+</script>

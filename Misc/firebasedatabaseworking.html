@@ -1,0 +1,31 @@
+<script src="https://www.gstatic.com/firebasejs/3.6.3/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/3.1.0/firebase-database.js"></script>
+<script>
+var database;
+var firebaseConfig = {
+  apiKey: "AIzaSyArqkUb9KWIX27PMd8OHs3FWRTPK7PQqiA",
+  authDomain: "database-e056e.firebaseapp.com",
+  databaseURL: "https://database-e056e.firebaseio.com",
+  projectId: "database-e056e",
+  storageBucket: "database-e056e.appspot.com",
+  messagingSenderId: "1039334305258",
+  appId: "1:1039334305258:web:49530177d4618f900a1693"
+}
+firebase.initializeApp(firebaseConfig);
+database = firebase.database();
+var ref = database.ref();
+//realtime changes
+ref.on('value', gotData, errData);
+
+
+
+function gotData(data){
+  var data = data.val();
+  console.log(data);
+}
+
+function errData(err){
+  console.log("Error!");
+  console.log(err);
+}
+</script>

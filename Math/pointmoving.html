@@ -1,0 +1,57 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script>
+var p1 = [100, 100];
+var p2 = [100, 300];
+var p3 = [300, 100];
+var p4 = [300, 300];
+
+var d1;
+var d2;
+var d3;
+var d4;
+
+var size = 15;
+
+function setup(){
+  createCanvas(400, 400);
+}
+
+function draw(){
+  background(100);
+  
+  push();
+  fill(255, 0, 0);  
+  circle(p1[0], p1[1], size);
+  pop();
+  
+  push();
+  fill(0, 255, 0);
+  circle(p2[0], p2[1], size);
+  pop();
+  
+  push();
+  fill(0, 0, 255);
+  circle(p3[0], p3[1], size);
+  pop();
+  
+  push();
+  fill(255, 255, 0);
+  circle(p4[0], p4[1], size);
+  pop();
+  
+  if(!mouseIsPressed){
+    d1 = dist(p1[0], p1[1], mouseX, mouseY);
+    d2 = dist(p2[0], p2[1], mouseX, mouseY);
+    d3 = dist(p3[0], p3[1], mouseX, mouseY);
+    d4 = dist(p3[0], p4[1], mouseX, mouseY);
+  }
+  p1[0] += mouseIsPressed&&d1<10 ? -pmouseX + mouseX : 0;
+  p1[1] += mouseIsPressed&&d1<10 ? -pmouseY + mouseY : 0;
+  p2[0] += mouseIsPressed&&d2<10 ? -pmouseX + mouseX : 0;
+  p2[1] += mouseIsPressed&&d2<10 ? -pmouseY + mouseY : 0;
+  p3[0] += mouseIsPressed&&d3<10 ? -pmouseX + mouseX : 0;
+  p3[1] += mouseIsPressed&&d3<10 ? -pmouseY + mouseY : 0;
+  p4[0] += mouseIsPressed&&d4<10 ? -pmouseX + mouseX : 0;
+  p4[1] += mouseIsPressed&&d4<10 ? -pmouseY + mouseY : 0;
+}
+</script>

@@ -1,0 +1,49 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var rot = 0;
+var inc = Math.PI/60;
+var buffer = 25;
+
+function setup(){
+  createCanvas(400, 400);
+}
+
+function draw(){
+  push();
+  noStroke();
+  fill(180, 180, 180);
+  rect(0, 0, width, height);
+  pop();
+  var lp = awr({x: 200, y: 200}, rot, 50);
+  push();
+  stroke(255, 0, 0, 150);
+  strokeWeight(3);
+  line(200, 200, lp.x*2-200, lp.y*2-200);
+  pop();
+  var cr = cross({x: lp.x-200, y: lp.y-200}, {x: (mouseX-200)/10, y: (mouseY-200)/10});
+  rot+=(cr>buffer)?inc:(cr<-buffer)?-inc:0;
+  push();
+  (cr>0)?fill(255,0,0):fill(0,255,0);
+  circle(200, 200, cr/10);
+  pop();
+}
+
+
+function cross(a, b){
+  return a.x*b.y-a.y*b.x;
+}
+
+function giftwrap(array){
+  var avg = {x: 0, y: 0};
+  var arr = array.slice();
+  var al = arr.length
+  for(i=0;i<al;i++){
+    avg.x+=arr[i].x;
+    avg.y+=arr[i].y;
+  }
+  avg.x/=al;
+  avg.y/=al;
+  
+  circle(avg.x, avg.y, 15); 
+}
+</script>

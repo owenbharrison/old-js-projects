@@ -1,0 +1,52 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var points = [];
+
+function setup(){
+  createCanvas(400, 400);
+  for(i=0;i<10;i++){
+    var b = 20;
+    points.push({x: random(b, width-b), y: random(b, height-b)});
+  }
+}
+
+function draw(){
+  background(0);
+  points.forEach(function(p){
+    push();
+    noStroke();
+    circle(p.x, p.y, 10);
+    pop();
+  });
+  giftwrap(points);
+}
+
+
+
+
+
+function cross(a, b){
+  return a.x*b.y-a.y*b.x;
+}
+
+function giftwrap(array){
+  var ax=0,ay=0,r=-1,d,cp,hull=[];
+  var arr=array.slice();
+  arr.sort(a, b)
+  hull.push(cp);
+  
+  for(i in arr){
+    var r = cross(arr[i], cp);
+  }
+  
+  
+  
+  
+  push(),noStroke(),fill(255, 80, 80);
+  circle(cp.x, cp.y, 15),pop();
+  
+  push(),noStroke(),fill(0, 255, 70);
+  circle(ax, ay, 15),pop();
+  
+}
+</script>

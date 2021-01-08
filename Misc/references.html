@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="style.css">
+<title>Youtube Downloader</title>
+</head>
+<body>
+<h1 class="heading">My Own Youtube Downloader !</h1>
+<input class="URL-input" placeholder="https://www.youtube.com/watch?v=MtN1YnoL46Q"><button class="convert-button">Convert</button>
+<script>
+var convertBtn = document.querySelector('.convert-button');
+var URLinput = document.querySelector('.URL-input');
+convertBtn.addEventListener('click', () => {
+console.log(`URL: ${URLinput.value}`);
+sendURL(URLinput.value);
+});
+function sendURL(URL) {
+window.location.href = `http://localhost:4000/download?URL=${URL}`;
+}
+</script>
+</body>
+</html>

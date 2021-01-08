@@ -1,0 +1,68 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
+<script>
+let pic;
+var particles = [];
+var done = false;
+
+function setup() {
+  createCanvas(300, 300);
+  pic = loadImage("https://feedbagpetsupply.com/wp-content/uploads/Easter-Kittens-300x300.jpg");
+  pixelDensity(1);
+}
+
+function draw(){
+  background(0);
+  if(!done){
+    image(pic, width/3, height/3, width/3, height/3);
+  }
+  else{
+    particles.forEach(function(particle){
+      particle.glideTo();
+      particle.show();
+    });
+  }
+}
+
+function mousePressed(){
+  if(!done){
+    loadPixels();
+    for(x=0;x<width;x++){
+      for(y=0;y<height;y++){
+        var index = (x+(y*width))*4;
+        particles.push(new Particle(x, y, {r: pixels[index], g: pixels[index+1], b: pixels[index+2]}));
+      }
+    }
+    updatePixels();
+    done = true;
+  }
+}
+
+function Particle(x, y, col){
+  this.rx = x;
+  this.ry = y;
+  this.x = Math.floor(Math.random()*height);
+  this.y = Math.floor(Math.random()*width);
+  this.vx = 0;
+  this.vy = 0;
+  this.col = col;
+  
+  this.show = function(){
+    push();
+    noStroke()
+    fill(this.col.r, this.col.g, this.col.b);
+    rectMode(CENTER);
+    rect(this.x*3, this.y*3, 3, 3);
+    pop();
+  }
+  
+  this.glideTo = function(){
+    this.vx += (this.rx-this.x)/2;
+    this.vy += (this.ry-this.y)/2;
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vx *= 0.8;
+    this.vy *= 0.8;
+  }
+}
+</script>

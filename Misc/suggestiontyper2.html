@@ -1,0 +1,21 @@
+<input type="text" id="textBox" onkeyup = "reloadValue()">
+<p id = "textBoxValue"></p>
+<script>
+function reloadValue() {
+  document.getElementById("textBoxValue").innerHTML = getContent(url, document.getElementById("textBox").value);//make p what textbox says
+  document.title = "Suggestions for: "+ document.getElementById("textBox").value;//make title what textbox says
+}
+var url = "https://api.datamuse.com/sug?s=";
+function getContent(url, word){
+  var allWords="";
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", url+word, false);
+  xmlhttp.send(null);
+  var x = xmlhttp.responseText;
+  x = x.split("\"");
+  for(i=1;i<((x.length-1)/6)+1;i++){
+    allWords +=(x[i*6-3]+"<br>");
+  }
+  return allWords;
+}
+</script>

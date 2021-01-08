@@ -1,0 +1,24 @@
+<script>
+var ans = "it works boi";
+ans+="  ";
+var arrayObj = "";
+var i = 0;
+var n = 0;
+var words = [];
+while(ans.charAt(0)!=" "){
+while(ans.charAt(i) != " "){
+arrayObj += ans.charAt(i); i++;
+}
+words.push(arrayObj);
+arrayObj = "";
+i = 0;
+ans=ans.substring(words[n].length+1, ans.length);
+n++;
+}
+for(a=0;a<words.length;a++){
+	var webSite = "https://api.datamuse.com/words?ml="+words[a];
+    window.open(webSite);
+}
+
+
+</script>

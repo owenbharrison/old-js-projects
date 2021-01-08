@@ -1,0 +1,16 @@
+<script>
+var youtubeLink = prompt("Enter Youtube link here:");
+var linkID = youtubeLink.match(/watch\?v=(.*?)$/)[1];
+var api = "https://video.google.com/timedtext?lang=en&v="+linkID;
+function getAPIData(api){
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", api, false);
+  xmlhttp.send(null);
+  return xmlhttp.responseText;
+}
+
+var out = getAPIData(api);
+out = out.replace(/<.*?>/g, "");
+console.log(out);
+document.write(out);
+</script>

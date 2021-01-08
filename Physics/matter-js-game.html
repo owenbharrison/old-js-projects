@@ -1,0 +1,123 @@
+<!--Using Matter.js and p5.js-->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script src="https://matterjs.owenharrison1.repl.co/script.js"></script>
+<script>
+console.clear();
+var Engine = Matter.Engine, World = Matter.World, Bodies = Matter.Bodies, Constraint = Matter.Constraint;
+
+var player, playerForce, gravit = 0, hops = 3, speed = 3;
+var engine, world, barrier;
+var items = [];
+var keys = [];
+
+
+function setup(){
+  createCanvas(400, 400);
+  engine = Engine.create();
+  world = engine.world;
+  barrier = Bodies.rectangle(200, width, height, 100, {isStatic: true});
+  player = new Player(200, 200, 20, 20, [255, 0, 0]);
+  playerForce = new Player(200, 200, 20, 20, [255, 0, 0]);
+  var options = {
+    bodyA: player.body,
+    bodyB: playerForce.body,
+    length: 50,
+    stiffness: 1
+  }
+  var constraint = Constraint.create(options);
+  Engine.run(engine);
+  World.add(world, [barrier, playerForce, constraint]);
+}
+
+function mousePressed(){
+  items.push(new Particle(mouseX, mouseY, 40, 40, "box"));
+}
+
+function draw(){
+  background(51);
+  //Engine.update(engine);
+  for(i=0;i<items.length;i++){
+    items[i].show();
+    if(items[i].isAbsent()&&items[i].type!="barrier"){
+      items[i].deleteObj();
+      items.splice(i, 1);
+      i--;
+    }
+  }
+  
+  playerForce.show();
+  player.show();
+  playerForce.body.position.y -= keys[32]&&playerForce.body.position.y>00 ? 50 : 0;
+}
+
+function Player(x, y, w, h, col){
+  this.w = w;
+  this.h = h;
+  
+  this.body = Bodies.rectangle(x, y, w, h);
+  
+  World.add(world, this.body);
+  this.show = function(){
+    var pos = this.body.position;
+    var angle = this.body.angle;
+    push();
+    fill(col);
+    translate(pos.x, pos.y);
+    rectMode(CENTER);
+    rect(0, 0, this.w, this.h);
+    pop();
+  }
+}
+
+
+
+
+
+
+function Particle(x, y, w, h, type){
+  this.w = w;
+  this.h = h;
+  this.type = type;
+  
+  if(this.type == "box"){this.body = Bodies.rectangle(x, y, w, h);}
+  if(this.type == "circle"){this.body = Bodies.circle(x, y, w);}
+  if(this.type == "barrier"){this.body = Bodies.rectangle(x, y, w, h, {isStatic: true});}
+  
+  World.add(world, this.body);
+  
+  this.isAbsent = function(){
+    var pos = this.body.position;
+    return (pos.y>height+100);
+  }
+  
+  this.deleteObj = function(){
+    World.remove(world, this.body);
+  }
+  
+  this.show = function(){
+    var pos = this.body.position;
+    var angle = this.body.angle;
+    
+    push();
+    translate(pos.x, pos.y);
+    rotate(angle);
+    if(this.type == "circle"){
+      circle(0, 0, w*2);
+    }
+    if(this.type == "box"||this.type == "barrier"){
+      rectMode(CENTER);
+      rect(0, 0, this.w, this.h);
+    }
+    pop();
+  }
+}
+
+document.addEventListener("keydown", function(){
+  keys[event.keyCode] = true;
+});
+
+document.addEventListener("keyup", function(){
+  keys[event.keyCode] = false;
+});
+</script>

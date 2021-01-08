@@ -1,0 +1,61 @@
+<script src="https://utils.cdnjs.repl.co/utils.js"></script>
+<script>
+var p1 = {x: 50, y: 300};
+var p2 = {x: 300, y: 100};
+var p3 = {x: 100, y: 50};
+
+var d1;
+var d2;
+var d3;
+
+var size = 10;
+
+function setup(){
+  createCanvas(400, 400);
+}
+
+function draw(){
+  background(150);
+   
+  line(p1.x, p1.y, p2.x, p2.y);
+  
+  push();fill(0, 0, 255);circle(p1.x, p1.y, size);pop();
+  push();fill(255, 255, 0);circle(p2.x, p2.y, size);pop();
+  
+  if(!mouseIsPressed){
+    d1 = dist(p1.x, p1.y, mouseX, mouseY);
+    d2 = dist(p2.x, p2.y, mouseX, mouseY);
+    d3 = dist(p3.x, p3.y, mouseX, mouseY);
+  }
+  
+  p1.x += mouseIsPressed&&d1<10 ? -pmouseX + mouseX : 0;
+  p1.y += mouseIsPressed&&d1<10 ? -pmouseY + mouseY : 0;
+  p2.x += mouseIsPressed&&d2<10 ? -pmouseX + mouseX : 0;
+  p2.y += mouseIsPressed&&d2<10 ? -pmouseY + mouseY : 0;
+  p3.x += mouseIsPressed&&d3<10 ? -pmouseX + mouseX : 0;
+  p3.y += mouseIsPressed&&d3<10 ? -pmouseY + mouseY : 0;
+  
+  push();
+  var sz = 15;
+  var cr = pointlineintersect(p1, p2, p3, sz);
+  text(cr, 200, 350);
+  push();
+  fill((!cr)*255, cr*255, 0, 70);
+  circle(p3.x, p3.y, sz*2);
+  pop();
+}
+
+
+
+
+
+function pointlineintersect(lp1, lp2, point, len){
+  var slope = (lp1.y-lp2.y)/(lp1.x-lp2.x);
+  var perp = -1/slope;
+  var pointangle = slopetorad(perp);
+  var linepoint1 = awr(point, pointangle, len);
+  var linepoint2 = awr(point, pointangle+Math.PI, len);
+  return intersects(lp1, lp2, point, linepoint1)||intersects(lp1, lp2, point, linepoint2);
+}
+
+</script>

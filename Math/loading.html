@@ -1,0 +1,29 @@
+<style>
+div{
+  background-color: limegreen;
+  height: 20px;
+  max-width: 500px;
+  border-style: solid;
+  border-width: 2px 4px;
+}
+</style>
+<div id = "bar"></div>
+Estimated Time:
+<p id = "ETA"></p>
+<script>
+var x = 20;
+setInterval(function() {
+  x++;
+  document.getElementById("bar").style.width = x;
+  var amount = (x - 20) / 4.8;
+  if (amount > 100) {
+    amount = 100;
+  }
+  document.getElementById("bar").innerHTML = amount;
+}, 20);
+setInterval(function(){
+  var percent = document.getElementById("bar").innerHTML;
+  document.getElementById("ETA").innerHTML = ((100 - percent)/percent-temp)/10;
+  var temp = document.getElementById("bar").innerHTML;
+}, 100);
+</script>
